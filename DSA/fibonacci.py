@@ -22,15 +22,32 @@ def fibo_dp(n):
 
     return hash_map[n]
 
+def fibo_dp_without_hashmap(n):
+
+    if n==0:
+        return 0
+
+    if n==1:
+        return 1
+
+    a,b=0,1
+    
+    for i in range(n-1):
+
+        c=a+b
+        a=b
+        b=c
+
+    return c
+
+
+
+
 
 
 start= datetime.datetime.now()
 
-
-
-print(fibo_dp(300))  # Example usage
-
-
+print(fibo_dp_without_hashmap(10000))  # Example usage
 
 end= datetime.datetime.now()
 
