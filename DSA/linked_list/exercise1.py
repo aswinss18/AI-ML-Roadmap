@@ -10,7 +10,36 @@ class LinkedList:
     def __init__(self):
         self.head = None
 
+
+    def insert_at_beginning(self, data):
+        node = Node(data, self.head)
+        self.head = node
+
+
+    def insert_at_end(self, data):
+        node = Node(data, None)
+
+        # Case 1: list is empty
+        if self.head is None:
+            self.head = node
+            return
+
+        # Case 2: list already has nodes
+        itr = self.head
+
+        print("itr", itr)
+
+        while itr.next:
+            itr = itr.next
+
+        itr.next = node
+
+
     def print_list(self):
+        if self.head is None:
+            print("List is empty")
+            return
+
         itr = self.head
 
         while itr:
@@ -20,22 +49,12 @@ class LinkedList:
         print("None")
 
 
-dummy = Node("hello")
-dummy1 = Node("welcome")
-dummy2 = Node("hai")
-dummy3 = Node("good")
-
-
-# Link the nodes
-dummy.next = dummy1
-dummy1.next = dummy2
-dummy2.next = dummy3
-
-
-# Create LinkedList and set head
+# Create linked list object
 ll = LinkedList()
-ll.head = dummy
 
+# ll.insert_at_beginning("hello")
+ll.insert_at_end("welcome")
+ll.insert_at_end("hai")
+ll.insert_at_end("good")
 
-# Print linked list
 ll.print_list()
