@@ -325,6 +325,14 @@ questions = [
     "How do vaccines create immune memory?",
     "Why can bacteria stop responding to antibiotics?",
     "Which technology has zero electrical resistance?",
+    "Why doesn't light come back after getting too close to certain objects in space?",
+    "What biological tool lets researchers rewrite hereditary information?",
+    "Why are some medicines no longer able to kill certain microbes?",
+    "Why is the sea becoming more acidic as atmospheric emissions rise?",
+    "What allows an electrical current to flow without losing energy as heat?",
+    "Why does time pass differently near extremely massive objects?",
+    "How does the body remember a virus it encountered years ago?",
+    "What mechanism converts sunlight into stored chemical energy?",
 ]
 
 for question in questions:
