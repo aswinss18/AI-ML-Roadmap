@@ -182,25 +182,79 @@ cases = [
     },
 ]
 
-def evaluate(top_k: int) -> None:
+def evaluate(top_k: int, min_score: float) -> None:
     hits = 0
+    correct_abstentions = 0
+    false_acceptances = 0
+    false_rejections = 0
+    wrong_retrievals = 0
 
     for case in cases:
         results = retrieve(case["question"], top_k=top_k)
-        returned_ids = [result["id"] for result in results]
+        expected_id = case["expected_id"]
 
-        passed = case["expected_id"] in returned_ids
-        hits += int(passed)
+        top_score = results[0]["score"] if results else None
+
+        # Decision layer: accept only when the top score passes.
+        accepted = (
+            top_score is not None
+            and top_score >= min_score
+        )
+
+        returned_ids = (
+            [result["id"] for result in results]
+            if accepted
+            else []
+        )
+
+        if expected_id is None:
+            if accepted:
+                false_acceptances += 1
+                outcome = "FALSE ACCEPTANCE"
+            else:
+                correct_abstentions += 1
+                outcome = "CORRECT ABSTENTION"
+
+        elif not accepted:
+            false_rejections += 1
+            outcome = "FALSE REJECTION"
+
+        elif expected_id in returned_ids:
+            hits += 1
+            outcome = "CORRECT RETRIEVAL"
+
+        else:
+            wrong_retrievals += 1
+            outcome = "WRONG RETRIEVAL"
 
         print(f"\nQuestion: {case['question']}")
-        print(f"Retrieved: {returned_ids}")
-        print(f"Expected: {case['expected_id']}")
-        print(f"Hit: {passed}")
+        print(
+            "Top score:",
+            f"{top_score:.3f}" if top_score is not None else "None",
+        )
+        print(f"Accepted documents: {returned_ids}")
+        print(f"Expected: {expected_id}")
+        print(f"Outcome: {outcome}")
 
-    print(f"\nHit rate @{top_k}: {hits}/{len(cases)}")
-    print(f"Percentage: {hits / len(cases):.0%}")
+    answerable_count = sum(
+        case["expected_id"] is not None
+        for case in cases
+    )
+
+    print(f"\n--- Top {top_k}, threshold {min_score} ---")
+    print(f"Correct retrievals: {hits}")
+    print(f"Correct abstentions: {correct_abstentions}")
+    print(f"False acceptances: {false_acceptances}")
+    print(f"False rejections: {false_rejections}")
+    print(f"Wrong retrievals: {wrong_retrievals}")
+
+    if answerable_count:
+        print(
+            f"Hit rate on answerable questions: "
+            f"{hits / answerable_count:.1%}"
+        )
 
 
 if __name__ == "__main__":
-    evaluate(top_k=1)
-    evaluate(top_k=2)
+    for threshold in [0.2, 0.4, 0.6]:
+        evaluate(top_k=2, min_score=threshold)
