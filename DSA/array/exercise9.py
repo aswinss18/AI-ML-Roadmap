@@ -38,4 +38,4 @@ def classify_latency(latencies):
 
 
 
-classify_scores(latencies)
+classify_latency(latencies)
