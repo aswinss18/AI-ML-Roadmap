@@ -1,29 +1,41 @@
-# 3. Classify Student Scores
-# scores = [95, 82, 67, 40, 73, 58, 91]
+# 6. Classify API Latency
+# latencies = [120, 450, 80, 900, 230, 1500, 310]
 
 
 # Rules:
-# 90–100 → excellent
-# 75–89  → good
-# 50–74  → average
-# 0–49   → fail
-
-# Return a dictionary containing the count for each category.
+# < 200 ms        → fast
+# 200–499 ms      → normal
+# 500–999 ms      → slow
+# >= 1000 ms      → very_slow
 
 
+latencies = [120, 450, 80, 900, 230, 1500, 310]
 
-scores = [95, 82, 67, 40, 73, 58, 91,100,0,76,54,34,5,6,89,99,23,43,12,10]
+def classify_latency(latencies):
+    dict={
+    "fast": 0,
+    "normal": 0,
+    "slow": 0,
+    "very_slow": 0}
+
+    for latency in latencies:
+        if latency<200:
+            dict["fast"]=dict["fast"]+1
+
+        elif 200<=latency<=499:
+            dict["normal"]=dict["normal"]+1
+
+        elif 500<=latency<=999:
+            dict["slow"]=dict["slow"]+1
+
+        else:
+            dict["very_slow"]=dict["very_slow"]+1          
 
 
-def classify_scores(scores):
-    dict={"excellent":0,"good":0,"average":0,"fail":0}
-
-    for score in scores:
-        if 90<=score<=100:
-            print()
+    print(dict)          
 
 
 
 
 
-classify_scores(scores)
+classify_scores(latencies)
