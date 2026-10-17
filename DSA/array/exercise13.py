@@ -36,8 +36,7 @@
 
 input_array=[10, 20, 30, 20, 40, 10, 50]
 
-
-# O(n'2) solution
+# O(n) + O(k) = O(n+k) where n is the length of the input array and k is the number of unique elements in the input array
 
 def find_duplicates(arr):
     dict={}
