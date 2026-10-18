@@ -35,9 +35,22 @@ def check_prime_square_root():
         if number%i==0:
             return False
 
-    return True    
+    return True 
 
-# print(check_prime())
+
+
+
+# Interview problem
+# Write a Python function that receives two integers, start and end, and returns all prime numbers between them, including both endpoints.
+# Example 1
+# Input:start = 10end = 30Output:[11, 13, 17, 19, 23, 29]
+
+# def prime_numbers
+
+
+
+
+print(check_prime())
 
 print(check_prime_square_root())
 
