@@ -112,3 +112,50 @@ user_copy["skills"].append("FastAPI")
 
 print(user is user_copy) #False
 print(user["skills"]) # ['Python', 'React']
+
+
+# 4. Python collection internals
+
+
+# Collection	    Best use	                   Important performance characteristic
+
+# list	      Ordered sequences	                      Index access O(1), search O(n)
+# tuple	     fixed collections of references	                   Index access O(1)
+# dict	        Key-value lookup	                          Average lookup O(1)
+# set	    Unique values and membership	             Average membership O(1)
+
+# Python lists are dynamic arrays. Dictionaries and sets are hash-table-based structures.
+
+
+
+numbers=[1,2,3,4,5,6,7,8,9]
+
+# Slicing
+
+print(numbers[1:5])  # [2, 3, 4, 5]
+
+# Enumerate: index and value
+
+for index,value in enumerate(numbers):
+    print("Index",index,"value",value)
+
+
+# Unpacking
+a, b, *rest = numbers
+
+print("a",a,"b",b,"rest",rest)
+
+# comprehension
+
+squares=[n*n for n in numbers]
+
+print(squares)
+
+# A comprehension is similar in purpose to JavaScript's map():
+# const squares = numbers.map(n => n * n);
+
+# Python's comprehension syntax can also combine transformation and filtering:
+
+
+even_squares=[n*n for n in numbers if n%2==0]
+print(even_squares)
