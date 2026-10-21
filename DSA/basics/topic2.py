@@ -247,7 +247,34 @@ even_numbers=list(filter(lambda x:x%2==0,numbers))
 # Comprehensions
 # Python developers frequently prefer comprehensions for simple transformations:
 
-print("numbers",[n * n for n in numbers],"squares",squares,"even_numbers",even_numbers)
+# print("numbers",[n * n for n in numbers],"squares",squares,"even_numbers",even_numbers)
+
+
+
+# ================================================================================
+
+
+
+# Zip and enumerate
+
+# zip() pairs elements from multiple iterables:
+
+names = ["Arun", "Meera","Aswin","Rahul","LLL","KHHH"]
+scores = [90, 85,21,3,0]
+
+for name, score in zip(names, scores):
+    print(name, score)
+
+# which iter is small... that number items only print
+
+
+
+for index, name in enumerate(names):
+    print(index, name)
+
+
+
+
 
 
 
