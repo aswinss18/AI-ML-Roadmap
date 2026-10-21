@@ -1,30 +1,22 @@
-# Javascript
+a = [10, 20, 30]
+b = a
 
-# const nums = [1, 2, 3];
+b.append(40)
 
-# const user = {
-#   name: "Aswin",
-#   age: 25
-# };
+print("a:", a)
+print("b:", b)
 
-# Python
+# Both print same Because a and b refer to the same list object in memory.
 
-nums = [1, 2, 3]
-
-user = {
-    "name": "Aswin",
-    "age": 25
-}
-
-for num in nums:
-    print(num)
+# a----> [10,20,30,40] <-------b
 
 
-def add(nums):
-    sum=0
-    for num in nums:
-        sum += num
-    return sum
+c = [1, 2, 3]
+d = [1, 2, 3]
 
+print(c == d)  # True
+print(c is d)  # False
 
-print(add(nums))
+# == checks whether values are equal.
+
+# is checks whether both names reference the exact same object.
