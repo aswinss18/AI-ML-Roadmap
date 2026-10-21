@@ -62,6 +62,7 @@ values = {"a": 10, "b": 20}
 # ** take all values
 
 
+# Mutable defaults
 
 # Common interview pitfall: Mutable default arguments
 # Consider:
@@ -92,26 +93,6 @@ def add_item(item, items=None):
 # A safer design uses None as the default and creates a new list inside the function. You'll implement that independently in your understanding exercise.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Mutable defaults
-
 def add_tag(tag, tags=[]):
     tags.append(tag)
     return tags
@@ -123,6 +104,62 @@ def add_tag(tag, tags=[]):
 # ['python', 'fastapi']
 
 # Scope and closures
+
+name = "Global"
+
+def outer():
+    name = "Enclosing"
+
+    def inner():
+        # nonlocal namem ---> Enclosing
+        # global name  -----> Global
+        name = "Local"
+        print(name)
+
+    inner()
+
+# outer() # Local
+
+# closure
+
+def outer():
+    count = 0
+
+    def increment():
+        nonlocal count
+        count += 1
+        return count
+
+    return increment
+
+counter = outer()
+
+# counter1 = outer()
+# counter2 = outer()
+
+# print(counter1())  # 1
+# print(counter2())  # 1
+
+
+# print("counter-1",counter())  # 1
+# print("counter-2",counter())  # 2
+
+
+# Closures
+# A closure is a function that retains access to variables from its enclosing lexical scope.
+
+# The key point is that you're calling outer() only once, not every time you call counter().
+
+# Also, nonlocal does not access global variables. It accesses variables from an enclosing function.
+
+# counter = outer() → count = 0 (initialized once)
+# counter()         → count = 0 + 1 → 1
+# counter()         → count = 1 + 1 → 2
+# nonlocal          → Modifies enclosing variable, not global
+# Calling outer() again creates a new closure with count = 0
+
+
+
 
 
 
@@ -156,6 +193,64 @@ def outer():
 # When you write count = 10 inside increment(), Python creates a new local variable rather than modifying count in outer().
 
 
+
+# ================================================================================================
+
+# First-class functions and closures
+
+# Python functions are first-class objects.
+
+
+def greet(name):
+    return f"Hello, {name}"
+
+say_hello = greet
+
+# print(say_hello("Arun"))
+
+# Higher-order functions
+
+# A higher-order function accepts or returns another function.
+
+def apply_operation(a, b, operation):
+    return operation(a, b)
+
+def multiply(a, b):
+    return a * b
+
+result = apply_operation(5, 3, multiply)
+
+# print(result)  # 15
+
+
+
+# Lambda, map, filter, zip and enumerate
+
+# Lambda
+# A lambda creates an anonymous function restricted to a single expression.
+
+
+square = lambda x,y:x*y
+
+# print(square(5,7))  # 25
+
+# ":" instead of "=>" in JS thats it
+
+
+numbers=[1,2,3,4,5,6,7,8,9]
+squares=list(map(lambda x:x*x,numbers))
+even_numbers=list(filter(lambda x:x%2==0,numbers))
+
+# print("numbers",numbers,"squares",squares,"even_numbers",even_numbers)
+
+
+# Comprehensions
+# Python developers frequently prefer comprehensions for simple transformations:
+
+print("numbers",[n * n for n in numbers],"squares",squares,"even_numbers",even_numbers)
+
+
+
 # Function arguments
 
 def demo(a, *args, **kwargs):
@@ -163,7 +258,7 @@ def demo(a, *args, **kwargs):
     print(args)
     print(kwargs)
 
-demo(10, 20, 30, name="Python", active=True)
+# demo(10, 20, 30, name="Python", active=True)
 
 
 # Python treats *args and **kwargs as two separate collections of arguments.
@@ -225,3 +320,6 @@ def countdown(n):
 # ```
 
 # **Key Point:** Every recursive function needs a reachable base case to stop execution.
+
+
+
