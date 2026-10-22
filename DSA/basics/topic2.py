@@ -262,15 +262,15 @@ even_numbers=list(filter(lambda x:x%2==0,numbers))
 names = ["Arun", "Meera","Aswin","Rahul","LLL","KHHH"]
 scores = [90, 85,21,3,0]
 
-for name, score in zip(names, scores):
-    print(name, score)
+# for name, score in zip(names, scores):
+    # print(name, score)
 
 # which iter is small... that number items only print
 
 
 
-for index, name in enumerate(names):
-    print(index, name)
+# for index, name in enumerate(names):
+    # print(index, name)
 
 
 
@@ -293,6 +293,100 @@ def demo(a, *args, **kwargs):
 # - a receives the first positional argument: 10.
 # - *args collects the remaining positional arguments into a tuple.
 # - **kwargs collects keyword arguments into a dictionary.
+
+
+
+# ==========================================================================================================================================
+
+
+
+# 5. Decorators — An important advanced Python feature
+
+
+# Decorators let you wrap functions with additional behavior without rewriting their original logic.
+
+# Common use cases include logging, authentication, caching, timing, and retry logic.
+
+
+# Python offers cleaner decorator syntax:
+
+# @logger
+# process():   
+
+
+
+# Conceptually, this is equivalent to:
+
+# process = logger(process)
+
+
+
+
+
+def decorator(func):
+    def wrapper():
+        print("Good morning...")
+        func()
+        print("Good Bye...")
+
+    return wrapper    
+
+@decorator
+def processor():
+    print("Processing...")
+
+@decorator
+def promotion():
+    print("We are promoting you...")
+
+# decorator_processor=decorator(processor)    
+
+# processor()
+
+# promotion()
+
+
+
+
+# eg:
+
+
+# def logger(func):
+#     def wrapper():
+#         print("Function started")
+#         func()
+#         print("Function finished")
+
+#     return wrapper
+
+
+# def process():
+#     print("Processing request")
+
+
+# wrapped_process = logger(process)
+# wrapped_process()
+
+
+# ===================================================================================================================================================================
+
+
+# 6. Recursion and stack behavior
+
+
+# Every recursive solution needs:
+# 1. A base case that stops further recursion.
+# 2. A recursive step that moves the problem closer to that base case.
+
+def factorial(n):
+    if n == 0:
+        return 1
+
+    return n * factorial(n - 1)
+
+
+print(factorial(5))
+
 
 
 # Recursion and complexity
