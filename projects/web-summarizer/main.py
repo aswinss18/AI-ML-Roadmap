@@ -19,7 +19,7 @@ BASE_URL = os.getenv(
     "http://127.0.0.1:11434/v1"
 )
 
-MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+MODEL = os.getenv("OLLAMA_MODEL", "gpt-oss:latest")
 
 # OpenAI SDK connected to local Ollama
 client = OpenAI(
