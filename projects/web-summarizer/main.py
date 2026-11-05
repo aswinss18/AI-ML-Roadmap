@@ -1,10 +1,10 @@
 import os
 import logging
 
-import groq
+import openai
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from groq import Groq
+from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
@@ -13,18 +13,23 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-api_key = os.getenv("GROQ_API_KEY")
-if not api_key:
-    raise RuntimeError("GROQ_API_KEY is missing from your .env file.")
+# Local LLM configuration
+BASE_URL = os.getenv(
+    "OLLAMA_BASE_URL",
+    "http://127.0.0.1:11434/v1"
+)
 
-client = Groq(
-    api_key=api_key,
-    timeout=15.0,
+MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+
+# OpenAI SDK connected to local Ollama
+client = OpenAI(
+    base_url=BASE_URL,
+    api_key="ollama",  # Placeholder, not a real API key
+    timeout=120.0,
     max_retries=2,
 )
 
 app = FastAPI()
-MODEL = "openai/gpt-oss-20b"
 
 
 class SummarizeRequest(BaseModel):
@@ -58,6 +63,7 @@ STRUCTURED_SUMMARY_SCHEMA = {
 
 @app.post("/summarize", response_model=SummarizeResponse)
 def summarize(request: SummarizeRequest):
+
     try:
         completion = client.chat.completions.create(
             model=MODEL,
@@ -83,9 +89,11 @@ def summarize(request: SummarizeRequest):
                 "type": "json_schema",
                 "json_schema": STRUCTURED_SUMMARY_SCHEMA,
             },
+            temperature=0,
         )
 
         content = completion.choices[0].message.content
+
         if not content:
             raise HTTPException(
                 status_code=502,
@@ -102,56 +110,59 @@ def summarize(request: SummarizeRequest):
     except HTTPException:
         raise
 
-    except groq.BadRequestError:
-        logger.exception("Invalid Groq request configuration.")
+    except openai.BadRequestError:
+        logger.exception("Invalid LLM request configuration.")
         raise HTTPException(
             status_code=500,
-            detail="The AI request configuration is invalid.",
+            detail="The local LLM request configuration is invalid.",
         ) from None
 
-    except groq.RateLimitError as exc:
-        retry_after = getattr(exc.response, "headers", {}).get("retry-after")
-        headers = {"Retry-After": retry_after} if retry_after else None
-
+    except openai.RateLimitError:
         raise HTTPException(
             status_code=503,
-            detail="The AI provider request limit was reached. Try again later.",
-            headers=headers,
+            detail="The local LLM request limit was reached.",
         ) from None
 
-    except groq.APITimeoutError:
+    except openai.APITimeoutError:
         raise HTTPException(
             status_code=504,
-            detail="The AI service timed out. Please retry.",
+            detail="The local LLM timed out.",
         ) from None
 
-    except (groq.APIConnectionError, groq.InternalServerError):
-        logger.exception("The AI provider is temporarily unavailable.")
+    except openai.APIConnectionError:
+        logger.exception("Cannot connect to local LLM.")
         raise HTTPException(
             status_code=503,
-            detail="The AI service is temporarily unavailable. Please retry.",
+            detail="Cannot connect to Ollama at 127.0.0.1:11434.",
         ) from None
 
-    except groq.APIStatusError as exc:
+    except openai.NotFoundError:
+        logger.exception("Local model not found.")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Model '{MODEL}' is not installed.",
+        ) from None
+
+    except openai.APIStatusError as exc:
         logger.exception(
-            "Unexpected Groq response with status %s.",
+            "Unexpected local LLM response: %s",
             exc.status_code,
         )
         raise HTTPException(
             status_code=502,
-            detail="The AI provider returned an unexpected response.",
+            detail="The local LLM returned an unexpected response.",
         ) from None
 
-    except ValidationError:
-        logger.exception("Invalid structured summary returned by the model.")
+    except (ValidationError, ValueError):
+        logger.exception("Invalid structured summary returned.")
         raise HTTPException(
             status_code=502,
-            detail="The AI service returned an invalid summary.",
+            detail="The local LLM returned an invalid summary.",
         ) from None
 
     except Exception:
         logger.exception("Unexpected summarization failure.")
         raise HTTPException(
             status_code=500,
-            detail="An unexpected error occurred while generating the summary.",
+            detail="An unexpected error occurred.",
         ) from None
