@@ -1,62 +1,145 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, HttpUrl, ValidationError
+from openai import OpenAI, APIError, APITimeoutError
 from utils.web_scraper import scraper
-from openai import OpenAI
 
 app = FastAPI()
 
+MODEL = "gpt-oss:latest"
 
-# //oolama open source model
-Model = "gpt-oss:latest"
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama",
+    timeout=300.0,
+    max_retries=0
+)
 
-client = OpenAI(base_url="http://localhost:8080/v1", api_key="YOUR_API_KEY",timeout=30,max_retries=3)
+SYSTEM_PROMPT = """
+You are a professional sales brochure generator.
 
+Generate a compelling sales brochure based ONLY on the website content.
 
-SYSTEM_PROMPT = "You are a professional sales brochure generator. Your task is to create a compelling and persuasive sales brochure based on the provided content. The brochure should be well-structured, engaging, and tailored to the target audience. Use clear headings, bullet points, and persuasive language to highlight the key features and benefits of the product or service. Ensure that the brochure is visually appealing and easy to read. Avoid using overly technical jargon and focus on creating a brochure that effectively communicates the value proposition to potential customers."
+Return a JSON object with EXACTLY these fields:
+- heading: string
+- description: string
+- bullet_points: array of 4 to 6 strings
+- summary: string
+
+Do not return Markdown.
+Do not use code fences.
+Do not add any text outside the JSON object.
+Do not invent unsupported claims.
+"""
 
 
 class ScrapeRequest(BaseModel):
-    url: str = Field(
-        min_length=5,
-        max_length=2048,
-        description="The URL of the webpage to scrape.",
-    )
+    url: HttpUrl
 
 
+class BrochureResponse(BaseModel):
+    heading: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    bullet_points: list[str] = Field(min_length=4, max_length=6)
+    summary: str = Field(min_length=1)
+
+
+class GenerateBrochureResponse(BaseModel):
+    status: str
+    data: BrochureResponse
 
 
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the Sales Brochure Generator API!"}
+def root():
+    return {"message": "Sales Brochure Generator API"}
 
 
-@app.post("/generate-brochure")
-async def generate_brochure(request: ScrapeRequest):
-
-    # Scrape the content from the provided URL
-    scraped_content = scraper(request.url)
-
-    if "An error occurred" in scraped_content:
-        return {"error": scraped_content}
-
-    # Prepare the prompt for the model
-    prompt = f"{SYSTEM_PROMPT}\n\nContent:\n{scraped_content}"
+@app.post(
+    "/generate-brochure",
+    response_model=GenerateBrochureResponse
+)
+def generate_brochure(request: ScrapeRequest):
 
     try:
-        # Generate the sales brochure using the model
+        content = scraper(str(request.url))
+
+        if not isinstance(content, str) or not content.strip():
+            raise HTTPException(
+                status_code=422,
+                detail="No website content found"
+            )
+
+        if content.startswith("An error occurred"):
+            raise HTTPException(
+                status_code=502,
+                detail=content
+            )
+
         response = client.chat.completions.create(
-            model=Model,
+            model=MODEL,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": scraped_content},
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Generate a brochure from this website:\n\n"
+                        + content[:10000]
+                    )
+                }
             ],
-            max_tokens=1000,
-            temperature=0.7,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "sales_brochure",
+                    "strict": True,
+                    "schema": BrochureResponse.model_json_schema()
+                }
+            },
+            temperature=0.2
         )
 
-        brochure_text = response.choices[0].message.content
+        raw_content = response.choices[0].message.content
 
-        return {"brochure": brochure_text}
+        if not raw_content:
+            raise HTTPException(
+                status_code=502,
+                detail="Ollama returned an empty response"
+            )
+
+        # Validate and parse JSON string into a Pydantic model
+        brochure = BrochureResponse.model_validate_json(raw_content)
+
+        return GenerateBrochureResponse(
+            status="success",
+            data=brochure
+        )
+
+    except HTTPException:
+        raise
+
+    except APITimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="Ollama inference timed out"
+        )
+
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Model returned invalid JSON: {e}"
+        )
+
+    except APIError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Ollama API error: {e}"
+        )
 
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {e}"
+        )
