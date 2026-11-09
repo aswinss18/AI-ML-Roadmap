@@ -1,0 +1,22 @@
+[project]
+name = "tokenizer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "aswin", email = "aswinartography18@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.162.2",
+    "openai>=3.46.0",
+    "pydantic>=2.14.3",
+    "tiktoken>=0.14.0",
+]
+
+[project.scripts]
+tokenizer = "tokenizer:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"
