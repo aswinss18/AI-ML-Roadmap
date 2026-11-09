@@ -1,0 +1,23 @@
+[project]
+name = "sales-brochure-generator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "aswin", email = "aswinartography18@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "beautifulsoup4>=4.15.0",
+    "fastapi[standard]>=0.162.2",
+    "openai>=3.46.0",
+    "pydantic>=2.14.3",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+sales-brochure-generator = "sales_brochure_generator:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"
