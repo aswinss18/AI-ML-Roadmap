@@ -20,7 +20,7 @@ function getSafeColor(value, fallback = null) {
 
   const color = value.trim();
   const isSafeColor =
-    /^(#[\da-f]{3,4}|#[\da-f]{6}|#[\da-f]{8}|(?:rgb|hsl)a?\([\d.%\s,/-]+\)|[a-z]{1,20})$/i.test(
+    /^(#[\da-f]{3,4}|#[\da-f]{6}|#[\da-f]{8}|(?:rgb|hsl|oklab|oklch|lab|lch|color)a?\([\w\s,.%/#-]+\)|[a-z]{1,20})$/i.test(
       color,
     );
 

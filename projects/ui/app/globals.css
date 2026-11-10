@@ -439,6 +439,7 @@ input {
   overflow: hidden;
   margin-top: 30px;
   border: 1px solid #e4e9e2;
+  border-top: 5px solid var(--brochure-primary, #64748b);
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 9px 28px rgb(34 54 43 / 4%);
@@ -454,6 +455,14 @@ input {
   gap: 15px;
   padding: 0 22px;
   border-bottom: 1px solid #edf0ec;
+}
+
+.brochure-topline {
+  background: color-mix(
+    in srgb,
+    var(--brochure-primary, #64748b) 12%,
+    white
+  );
 }
 
 .brochure-label {
@@ -622,9 +631,9 @@ input {
         in srgb,
         var(
             --brochure-secondary,
-            color-mix(in srgb, var(--brochure-primary, #64748b) 25%, white)
+            color-mix(in srgb, var(--brochure-primary, #64748b) 45%, white)
           )
-          52%,
+          72%,
         transparent
       ),
       transparent 48%
@@ -635,18 +644,18 @@ input {
         in srgb,
         var(
             --brochure-secondary,
-            color-mix(in srgb, var(--brochure-primary, #64748b) 25%, white)
+            color-mix(in srgb, var(--brochure-primary, #64748b) 45%, white)
           )
-          20%,
+          35%,
         #fff
       ),
       color-mix(
         in srgb,
         var(
             --brochure-tertiary,
-            color-mix(in srgb, var(--brochure-primary, #64748b) 12%, white)
+            color-mix(in srgb, var(--brochure-primary, #64748b) 24%, white)
           )
-          18%,
+          30%,
         #fff
       ) 60%,
       #f6f5ee
