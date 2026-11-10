@@ -46,11 +46,15 @@ class ScrapeRequest(BaseModel):
     model: str = Field(default="gpt-oss:latest", min_length=1)
 
 
-class BrochureResponse(BaseModel):
+class BrochureCopy(BaseModel):
     heading: str = Field(min_length=1)
     description: str = Field(min_length=1)
     bullet_points: list[str] = Field(min_length=4, max_length=6)
     summary: str = Field(min_length=1)
+
+
+class BrochureResponse(BrochureCopy):
+    colors: dict[str, str] = Field(default_factory=dict)
 
 
 class GenerateBrochureResponse(BaseModel):
@@ -144,19 +148,38 @@ def generate_brochure(request: ScrapeRequest):
         output_tokens, prompt_reserve, max_content_chars = get_context_settings(
             model_context_length
         )
-        content = scraper(str(request.url), max_chars=max_content_chars)
+        scraped_data = scraper(str(request.url), max_chars=max_content_chars)
+        if isinstance(scraped_data, str):
+            raise HTTPException(status_code=502, detail=scraped_data)
+        if not isinstance(scraped_data, dict):
+            raise HTTPException(
+                status_code=502,
+                detail="The website scraper returned an invalid response",
+            )
 
+        content = scraped_data.get("text")
         if not isinstance(content, str) or not content.strip():
             raise HTTPException(
                 status_code=422,
                 detail="No website content found"
             )
 
-        if content.startswith("An error occurred"):
-            raise HTTPException(
-                status_code=502,
-                detail=content
+        scraped_colors = scraped_data.get("style")
+        if not isinstance(scraped_colors, dict):
+            scraped_colors = {}
+        colors = {
+            color_name: color_value
+            for color_name in (
+                "primary_color",
+                "secondary_color",
+                "tertiary_color",
             )
+            if isinstance(
+                color_value := scraped_colors.get(color_name),
+                str,
+            )
+            and color_value.strip()
+        }
 
         estimated_input_tokens = math.ceil(
             len(content) / CHARS_PER_TOKEN_ESTIMATE
@@ -179,7 +202,7 @@ def generate_brochure(request: ScrapeRequest):
                         ),
                     },
                 ],
-                "format": BrochureResponse.model_json_schema(),
+                "format": BrochureCopy.model_json_schema(),
                 "stream": False,
                 "options": {
                     "num_ctx": request_context_length,
@@ -209,7 +232,11 @@ def generate_brochure(request: ScrapeRequest):
             )
 
         # Validate and parse JSON string into a Pydantic model
-        brochure = BrochureResponse.model_validate_json(raw_content)
+        brochure_copy = BrochureCopy.model_validate_json(raw_content)
+        brochure = BrochureResponse(
+            **brochure_copy.model_dump(),
+            colors=colors,
+        )
 
         return GenerateBrochureResponse(
             status="success",

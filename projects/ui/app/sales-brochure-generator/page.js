@@ -13,6 +13,20 @@ const AVAILABLE_MODELS = [
   "gemma3:270m",
 ];
 
+function getSafeColor(value, fallback) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const color = value.trim();
+  const isSafeColor =
+    /^(#[\da-f]{3,4}|#[\da-f]{6}|#[\da-f]{8}|(?:rgb|hsl)a?\([\d.%\s,/-]+\)|[a-z]{1,20})$/i.test(
+      color,
+    );
+
+  return isSafeColor ? color : fallback;
+}
+
 export default function SalesBrochureGenerator() {
   const [url, setUrl] = useState("");
   const [model, setModel] = useState("gpt-oss:latest");
@@ -147,7 +161,24 @@ export default function SalesBrochureGenerator() {
       )}
 
       {brochure ? (
-        <article className="brochure" aria-live="polite">
+        <article
+          className="brochure"
+          aria-live="polite"
+          style={{
+            "--brochure-primary": getSafeColor(
+              brochure.colors?.primary_color,
+              "#6e9579",
+            ),
+            "--brochure-secondary": getSafeColor(
+              brochure.colors?.secondary_color,
+              "#acc6ad",
+            ),
+            "--brochure-tertiary": getSafeColor(
+              brochure.colors?.tertiary_color,
+              "#73a085",
+            ),
+          }}
+        >
           <div className="brochure-topline">
             <span className="brochure-label"><span /> YOUR GENERATED BROCHURE</span>
             <span className="source-url">{url}</span>
