@@ -464,7 +464,7 @@ input {
 .brochure-label > span {
   width: 5px;
   height: 5px;
-  background: var(--brochure-primary, #6e9579);
+  background: var(--brochure-primary, #64748b);
 }
 
 .source-url {
@@ -489,7 +489,7 @@ input {
 .brochure-kicker {
   color: color-mix(
     in srgb,
-    var(--brochure-primary, #6d9a7f) 65%,
+    var(--brochure-primary, #64748b) 65%,
     #27382f
   );
   font-size: 8px;
@@ -570,14 +570,30 @@ input {
   gap: 9px;
   margin-top: 21px;
   padding: 13px 15px;
-  border-left: 2px solid var(--brochure-tertiary, #73a085);
-  background: color-mix(in srgb, var(--brochure-tertiary, #73a085) 7%, #f7f9f6);
+  border-left: 2px solid
+    var(
+      --brochure-tertiary,
+      color-mix(in srgb, var(--brochure-primary, #64748b) 65%, #27382f)
+    );
+  background: color-mix(
+    in srgb,
+    var(
+        --brochure-tertiary,
+        color-mix(in srgb, var(--brochure-primary, #64748b) 20%, white)
+      )
+      7%,
+    #f7f9f6
+  );
 }
 
 .summary-mark {
   color: color-mix(
     in srgb,
-    var(--brochure-tertiary, #8eb19a) 65%,
+    var(
+        --brochure-tertiary,
+        color-mix(in srgb, var(--brochure-primary, #64748b) 65%, #27382f)
+      )
+      65%,
     #3a4a40
   );
   font-family: Georgia, "Times New Roman", serif;
@@ -602,13 +618,37 @@ input {
   background:
     radial-gradient(
       ellipse at 50% 40%,
-      color-mix(in srgb, var(--brochure-secondary, #c6dac6) 52%, transparent),
+      color-mix(
+        in srgb,
+        var(
+            --brochure-secondary,
+            color-mix(in srgb, var(--brochure-primary, #64748b) 25%, white)
+          )
+          52%,
+        transparent
+      ),
       transparent 48%
     ),
     linear-gradient(
       145deg,
-      color-mix(in srgb, var(--brochure-secondary, #f3f5ef) 20%, #fff),
-      color-mix(in srgb, var(--brochure-tertiary, #e8eee6) 18%, #fff) 60%,
+      color-mix(
+        in srgb,
+        var(
+            --brochure-secondary,
+            color-mix(in srgb, var(--brochure-primary, #64748b) 25%, white)
+          )
+          20%,
+        #fff
+      ),
+      color-mix(
+        in srgb,
+        var(
+            --brochure-tertiary,
+            color-mix(in srgb, var(--brochure-primary, #64748b) 12%, white)
+          )
+          18%,
+        #fff
+      ) 60%,
       #f6f5ee
     );
 }
@@ -618,7 +658,7 @@ input {
   width: 190px;
   height: 190px;
   border: 1px solid
-    color-mix(in srgb, var(--brochure-primary, #698f73) 26%, transparent);
+    color-mix(in srgb, var(--brochure-primary, #64748b) 26%, transparent);
   border-radius: 50%;
   transform: rotate(-24deg) scaleY(0.55);
 }
@@ -642,12 +682,15 @@ input {
   border-radius: 50%;
   background: linear-gradient(
     145deg,
-    var(--brochure-secondary, #acc6ad),
-    var(--brochure-primary, #6e9579)
+    var(
+      --brochure-secondary,
+      color-mix(in srgb, var(--brochure-primary, #64748b) 25%, white)
+    ),
+    var(--brochure-primary, #64748b)
   );
   box-shadow:
     0 12px 32px
-      color-mix(in srgb, var(--brochure-primary, #476f52) 22%, transparent),
+      color-mix(in srgb, var(--brochure-primary, #64748b) 22%, transparent),
     inset 0 1px 2px rgb(255 255 255 / 65%);
 }
 
@@ -663,7 +706,11 @@ input {
   bottom: 20px;
   color: color-mix(
     in srgb,
-    var(--brochure-tertiary, #718374) 55%,
+    var(
+        --brochure-tertiary,
+        color-mix(in srgb, var(--brochure-primary, #64748b) 65%, #27382f)
+      )
+      55%,
     #3a4a40
   );
   font-family: Georgia, "Times New Roman", serif;

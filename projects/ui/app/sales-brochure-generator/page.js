@@ -13,7 +13,7 @@ const AVAILABLE_MODELS = [
   "gemma3:270m",
 ];
 
-function getSafeColor(value, fallback) {
+function getSafeColor(value, fallback = null) {
   if (typeof value !== "string") {
     return fallback;
   }
@@ -167,15 +167,13 @@ export default function SalesBrochureGenerator() {
           style={{
             "--brochure-primary": getSafeColor(
               brochure.colors?.primary_color,
-              "#6e9579",
+              "#64748b",
             ),
             "--brochure-secondary": getSafeColor(
               brochure.colors?.secondary_color,
-              "#acc6ad",
             ),
             "--brochure-tertiary": getSafeColor(
               brochure.colors?.tertiary_color,
-              "#73a085",
             ),
           }}
         >
