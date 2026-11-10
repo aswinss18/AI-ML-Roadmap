@@ -20,10 +20,12 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 ## Sales brochure generator
 
-The app's `/sales-brochure-generator` page sends website URLs to the FastAPI
-`/generate-brochure` endpoint. By default, the API is expected at
-`http://localhost:8000`. Set `NEXT_PUBLIC_API_BASE_URL` before starting Next.js
-to use a different API base URL.
+The app's `/sales-brochure-generator` page sends website URLs and a selected
+Ollama model to the FastAPI `/generate-brochure` endpoint. The model selector
+includes `meditron:latest`, `deepseek-r1:1.5b`, `llama3.2:latest`,
+`gpt-oss:latest`, `phi3:latest`, and `gemma3:270m`. By default, the API is
+expected at `http://localhost:8000`. Set `NEXT_PUBLIC_API_BASE_URL` before
+starting Next.js to use a different API base URL.
 
 Run the FastAPI app from `projects/sales-brochure-generator` and start this
 Next.js app on port 3000. The API allows browser requests from the local Next.js

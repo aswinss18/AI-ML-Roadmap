@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-MODEL = "gpt-oss:latest"
+# MODEL = "gpt-oss:latest"
 
 client = OpenAI(
     base_url="http://localhost:11434/v1",
@@ -46,6 +46,7 @@ Do not invent unsupported claims.
 
 class ScrapeRequest(BaseModel):
     url: HttpUrl
+    model: str = Field(default="gpt-oss:latest", min_length=1)
 
 
 class BrochureResponse(BaseModel):
@@ -87,7 +88,7 @@ def generate_brochure(request: ScrapeRequest):
             )
 
         response = client.chat.completions.create(
-            model=MODEL,
+            model=request.model,
             messages=[
                 {
                     "role": "system",

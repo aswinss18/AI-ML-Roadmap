@@ -4,9 +4,18 @@ import { useState } from "react";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const AVAILABLE_MODELS = [
+  "meditron:latest",
+  "deepseek-r1:1.5b",
+  "llama3.2:latest",
+  "gpt-oss:latest",
+  "phi3:latest",
+  "gemma3:270m",
+];
 
 export default function SalesBrochureGenerator() {
   const [url, setUrl] = useState("");
+  const [model, setModel] = useState("gpt-oss:latest");
   const [brochure, setBrochure] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +32,7 @@ export default function SalesBrochureGenerator() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url, model }),
         },
       );
       const result = await response.json();
@@ -75,6 +84,20 @@ export default function SalesBrochureGenerator() {
 
       <section className="generator-card" aria-labelledby="website-label">
         <form onSubmit={handleSubmit}>
+          <div className="model-select">
+            <label htmlFor="model">AI model</label>
+            <select
+              id="model"
+              value={model}
+              onChange={(event) => setModel(event.target.value)}
+            >
+              {AVAILABLE_MODELS.map((availableModel) => (
+                <option key={availableModel} value={availableModel}>
+                  {availableModel}
+                </option>
+              ))}
+            </select>
+          </div>
           <label id="website-label" htmlFor="website-url">Website URL</label>
           <div className="url-entry">
             <svg viewBox="0 0 24 24" aria-hidden="true">

@@ -245,6 +245,27 @@ input {
   font-weight: 590;
 }
 
+.model-select {
+  margin-bottom: 16px;
+}
+
+.model-select select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid #dfe5df;
+  border-radius: 7px;
+  outline: 0;
+  color: #314238;
+  background: #fff;
+  font-size: 12px;
+}
+
+.model-select select:focus {
+  border-color: #75a78e;
+  box-shadow: 0 0 0 3px rgb(92 148 113 / 12%);
+}
+
 .url-entry {
   display: flex;
   min-height: 50px;
