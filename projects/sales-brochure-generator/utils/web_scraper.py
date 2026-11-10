@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
-def scraper(url):
+def scraper(url, max_chars=None):
     """
     Scrapes the content of a given URL and returns the text content.
 
@@ -18,6 +18,9 @@ def scraper(url):
 
         # Extract text from the parsed HTML
         text_content = soup.get_text(separator=' ', strip=True)
+
+        if max_chars is not None:
+            text_content = text_content[:max_chars]
 
         return text_content
 
