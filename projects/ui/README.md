@@ -27,9 +27,17 @@ includes `meditron:latest`, `deepseek-r1:1.5b`, `llama3.2:latest`,
 expected at `http://localhost:8000`. Set `NEXT_PUBLIC_API_BASE_URL` before
 starting Next.js to use a different API base URL.
 
-Run the FastAPI app from `projects/sales-brochure-generator` and start this
-Next.js app on port 3000. The API allows browser requests from the local Next.js
-development origins.
+## AI tutor
+
+The `/ai-tutor` page sends a question and the selected Ollama model to the
+FastAPI `POST /teach-stream` endpoint. Answers stream into the page as they are
+generated. The tutor uses the same model choices and `NEXT_PUBLIC_API_BASE_URL`
+setting as the brochure generator.
+
+Start the matching FastAPI app under `projects/` on port 8000, then start this
+Next.js app on port 3000. Use `projects/ai-tutor` for the tutor and
+`projects/sales-brochure-generator` for brochures. The shared
+`NEXT_PUBLIC_API_BASE_URL` setting points to one backend at a time.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
