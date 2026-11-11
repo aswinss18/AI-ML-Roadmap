@@ -31,8 +31,9 @@ starting Next.js to use a different API base URL.
 
 The `/ai-tutor` page sends a question and the selected Ollama model to the
 FastAPI `POST /teach-stream` endpoint. Answers stream into the page as they are
-generated. The tutor uses the same model choices and `NEXT_PUBLIC_API_BASE_URL`
-setting as the brochure generator.
+generated and are rendered as formatted Markdown, including headings, lists,
+tables, and code. The tutor uses the same model choices and
+`NEXT_PUBLIC_API_BASE_URL` setting as the brochure generator.
 
 Start the matching FastAPI app under `projects/` on port 8000, then start this
 Next.js app on port 3000. Use `projects/ai-tutor` for the tutor and

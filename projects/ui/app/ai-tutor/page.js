@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -343,7 +345,20 @@ export default function AiTutorPage() {
                   </header>
                   <div className="tutor-answer-body" aria-live="off">
                     {answer ? (
-                      <p>{answer}</p>
+                      <div className="tutor-markdown">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ children }) => (
+                              <div className="tutor-table-wrap">
+                                <table>{children}</table>
+                              </div>
+                            ),
+                          }}
+                        >
+                          {answer}
+                        </ReactMarkdown>
+                      </div>
                     ) : (
                       <div className="tutor-thinking">
                         <span className="thinking-dots" aria-hidden="true">
