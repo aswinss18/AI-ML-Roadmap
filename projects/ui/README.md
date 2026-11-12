@@ -45,8 +45,9 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ## Multi-model chat
 
 Open `/multi-model-chat` from the workspace sidebar. Enter a topic and choose
-an installed Ollama model for Liz and Jarviz. Jarviz opens the discussion and
-each speaker gets two turns. Use **Stop** to end the stream early.
+an installed Ollama model for Liz and Jarviz. They trade short replies and
+decide when the discussion is complete. Use **Stop** to end the stream at
+any time.
 
 With Ollama running, start the chat API from `projects/multi-chat-bots`:
 

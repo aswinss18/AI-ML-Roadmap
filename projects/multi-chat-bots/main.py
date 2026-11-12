@@ -75,6 +75,15 @@ SPEAKER_LABEL = re.compile(
     re.IGNORECASE,
 )
 SCRIPT_STOPS = ["\nUser:", "\nMe:", "\nLiz:", "\nJarviz:"]
+END_CHAT = "<END_CHAT>"
+END_CHAT_FORMS = tuple(
+    prefix + "END_CHAT" for prefix in ("<", "`", "```", "*", "**", "_", "__", "")
+)
+END_CHAT_PATTERN = re.compile("|".join(map(re.escape, END_CHAT_FORMS)), re.IGNORECASE)
+END_CHAT_PREFIXES = {
+    form[:length] for form in END_CHAT_FORMS for length in range(1, len(form))
+}
+MAX_MARKER_PREFIX = max(map(len, END_CHAT_PREFIXES))
 
 
 Topic = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
@@ -110,7 +119,9 @@ async def chat(request_body: RequestBody):
 
     async def generate():
         history = []
-        for turn, (speaker, name, partner, persona, model) in enumerate(speakers * 2):
+        while True:
+            turn = len(history)
+            speaker, name, partner, persona, model = speakers[turn % len(speakers)]
             messages = [
                 {
                     "role": "system",
@@ -119,9 +130,15 @@ async def chat(request_body: RequestBody):
                         f"For this conversation, you are speaking directly to {partner}. "
                         "Keep your personality and speaking style. "
                         f"Talk about this topic: {request_body.topic}\n"
-                        f"Speak directly to {partner} in one or two short sentences. "
-                        "Write only what you would say aloud, without speaker labels, "
-                        "stage directions, or dialogue for anyone else."
+                        f"Address {partner} by that name if you use a name. "
+                        "Reply to their point in your own words. Let questions come up naturally. "
+                        "Keep the topic between the two of you. Leave out character backstories "
+                        "and claims that you performed actions or ran analyses. "
+                        "Write only your own message, without speaker labels or stage directions. "
+                        "Send one short, complete sentence, like a text message. "
+                        "Continue while you have something new to say about the topic. "
+                        "Once you've both shared your thoughts and the discussion feels complete, "
+                        f"send a natural closing line followed by {END_CHAT} on its own line."
                     ),
                 },
             ]
@@ -140,32 +157,47 @@ async def chat(request_body: RequestBody):
                     "type": "delta", "speaker": speaker, "turn": turn, "text": text,
                 }) + "\n"
 
-            parts = []
-            opening = ""
+            reply = ""
+            pending = ""
+            concluded = False
             try:
                 stream = await client.chat.completions.create(
-                    model=model, messages=messages, stream=True, max_tokens=256,
-                    stop=SCRIPT_STOPS,
+                    model=model, messages=messages, stream=True, stop=SCRIPT_STOPS,
                 )
                 async with stream:
                     async for chunk in stream:
                         if not chunk.choices or not (content := chunk.choices[0].delta.content):
                             continue
-                        if not parts:
-                            # A label at the start can span several model chunks.
-                            opening += content
-                            if len(opening.lstrip()) < 24 and ":" not in opening:
+                        pending += content
+                        marker = END_CHAT_PATTERN.search(pending)
+                        concluded = marker is not None
+                        content = pending[:marker.start()] if marker else pending
+                        pending = ""
+                        if marker:
+                            content = content.rstrip()
+                        else:
+                            # Keep a possible end marker until the next model chunk arrives.
+                            for length in range(min(len(content), MAX_MARKER_PREFIX), 0, -1):
+                                if content[-length:].upper() in END_CHAT_PREFIXES:
+                                    content, pending = content[:-length], content[-length:]
+                                    break
+                        if not reply:
+                            # A leading speaker label can also span chunks.
+                            if not concluded and len(content.lstrip()) < 24 and ":" not in content:
+                                pending = content + pending
                                 continue
-                            content = SPEAKER_LABEL.sub("", opening)
-                            opening = ""
-                            if not content:
-                                continue
-                        parts.append(content)
+                            content = SPEAKER_LABEL.sub("", content).lstrip()
+
+                        if content:
+                            reply += content
+                            yield delta(content)
+                        if concluded:
+                            break
+                if pending:
+                    content = pending if reply else SPEAKER_LABEL.sub("", pending).lstrip()
+                    if content:
+                        reply += content
                         yield delta(content)
-                if opening:
-                    content = SPEAKER_LABEL.sub("", opening)
-                    parts.append(content)
-                    yield delta(content)
             except APIError:
                 logger.exception("Ollama failed to stream a reply for %s", speaker)
                 yield json.dumps({
@@ -173,7 +205,8 @@ async def chat(request_body: RequestBody):
                 }) + "\n"
                 return
 
-            reply = "".join(parts)
+            if concluded:
+                break
             if not reply.strip():
                 yield json.dumps({
                     "type": "error", "message": f"{name} returned an empty reply. Try another model.",
