@@ -42,6 +42,23 @@ Next.js app on port 3000. Use `projects/ai-tutor` for the tutor and
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Multi-model chat
+
+Open `/multi-model-chat` from the workspace sidebar. Enter a topic and choose
+an installed Ollama model for Liz and Jarviz. Jarviz opens the discussion and
+each speaker gets two turns. Use **Stop** to end the stream early.
+
+With Ollama running, start the chat API from `projects/multi-chat-bots`:
+
+```bash
+uv run --locked uvicorn main:app --port 8001
+```
+
+The chat page uses `http://localhost:8001` by default. Set
+`NEXT_PUBLIC_MULTI_CHAT_API_BASE_URL` before starting Next.js to override it.
+If the UI runs on a different origin, set `MULTI_CHAT_UI_ORIGINS` on the API
+to a comma-separated list of allowed frontend origins.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

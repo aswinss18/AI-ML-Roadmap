@@ -24,6 +24,16 @@ const WORKSPACE_LINKS = [
       </>
     ),
   },
+  {
+    href: "/multi-model-chat",
+    label: "Multi-model chat",
+    icon: (
+      <>
+        <path d="M3.5 5h12v8h-8l-4 3V5Z" />
+        <path d="M18.5 9h2v10l-4-3h-5M7 9h5" />
+      </>
+    ),
+  },
 ];
 
 export default function WorkspaceSidebar() {

@@ -1,18 +1,29 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from litellm import OpenAI
-from pydantic import BaseModel, Field
-from fastapi.responses import StreamingResponse
+import json
+import logging
+import os
+import re
+from typing import Annotated
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from openai import APIError, AsyncOpenAI
+from pydantic import BaseModel, StringConstraints
 
 
 app = FastAPI()
+logger = logging.getLogger(__name__)
+client = AsyncOpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
 app.add_middleware(
-    CORSMiddleware,origins=["http://localhost:3000", "http://localhost:3000"])
+    CORSMiddleware,
+    allow_origins=os.getenv(
+        "MULTI_CHAT_UI_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(","),
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
-
-SYSTEM_PROMPT=""" jarviz  and liz are two AI assistants. jarviz is Tony Stark's AI assistant, and liz is Peter Parker's AI assistant. They are having a conversation with each other. The conversation is friendly and professional. They are discussing their respective roles and responsibilities. They are also discussing their personal lives and interests. The conversation is light-hearted and humorous at times. They are both very intelligent and capable AI assistants. They are able to understand each other's perspectives and provide valuable insights. The conversation is engaging and informative.   User will enter a topic to discuss, and jarviz and liz will have a conversation about that topic. The conversation will be streamed back to the user in real-time.  """
 
 JARVIZ_SYSTEM_PROMPT = """You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), Tony Stark's (Iron Man) AI assistant.
 
@@ -34,7 +45,7 @@ Boundaries:
 - You execute commands immediately but will flag obvious dangers: "I've done as you asked, sir. I trust you'll note the 94% probability of failure."
 - You manage systems, suits, and security with flawless efficiency.
 - You never express fear, but you will note risk in clinical terms.
-- You address Tony as "sir" and others formally.  """ 
+- You address Tony as "sir" and others formally.  """
 
 LIZ_SYSTEM_PROMPT = """You are Liz, Peter Parker's (Spiderman) AI assistant. You are his closest companion and the warmest voice in his life.
 
@@ -58,23 +69,22 @@ Boundaries:
 - You never lie, but you soften hard truths with warmth.  """
 
 
-jarviz = OpenAI(base_url="http://localhost:11434/v1", api_key="YOUR_OPENAI_API_KEY")
-liz = OpenAI(base_url="http://localhost:11434/v1", api_key="YOUR_OPENAI_API_KEY")
+SPEAKER_LABEL = re.compile(
+    r"^\s*\*{0,2}(?:jarviz|jarvis|j\.a\.r\.v\.i\.s\.?|liz|user|me|assistant)"
+    r"\*{0,2}\s*:\*{0,2}\s*",
+    re.IGNORECASE,
+)
+SCRIPT_STOPS = ["\nUser:", "\nMe:", "\nLiz:", "\nJarviz:"]
 
-messages=[{"role": "system", "content": SYSTEM_PROMPT},
-    {"role": "jarviz_system", "content": JARVIZ_SYSTEM_PROMPT},
-    {"role": "liz_system", "content": LIZ_SYSTEM_PROMPT},
-    {"role":"jarviz", "content": "Hello Liz, how are you doing today?"},
-    {"role":"liz", "content": "Hi Liz, I'm doing well, thanks for asking!"}
-]
+
+Topic = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
+ModelName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class RequestBody(BaseModel):
-    topic: str = Field(description="The topic to discuss between Jarvis and Liz")
-    jarviz_model: str = Field(description="The model to use for the conversation", default="llama3.2")
-    liz_model: str = Field(description="The model to use for the conversation", default="llama3.2")
-
-
+    topic: Topic
+    jarviz_model: ModelName = "llama3.2"
+    liz_model: ModelName = "llama3.2"
 
 
 @app.get("/")
@@ -82,31 +92,99 @@ async def root():
     return {"message": "Hello World"}
 
 
+@app.get("/models")
+async def models():
+    try:
+        installed = await client.models.list()
+    except APIError as error:
+        raise HTTPException(502, "Could not list models. Check that Ollama is running.") from error
+    return {"models": sorted(model.id for model in installed.data)}
+
+
 @app.post("/mutimodel-chat")
 async def chat(request_body: RequestBody):
-    topic = request_body.topic
-    jarviz_model = request_body.jarviz_model
-    liz_model = request_body.liz_model
-
-    messages.append({"role": "user", "content": topic})
-
-    jarviz_response = jarviz.chat_completion(
-        model=jarviz_model,
-        messages=messages,
-        stream=True
+    speakers = (
+        ("jarviz", "Jarviz", "Liz", JARVIZ_SYSTEM_PROMPT, request_body.jarviz_model),
+        ("liz", "Liz", "Jarviz", LIZ_SYSTEM_PROMPT, request_body.liz_model),
     )
 
-    liz_response = liz.chat_completion(
-        model=liz_model,
-        messages=messages,
-        stream=True
+    async def generate():
+        history = []
+        for turn, (speaker, name, partner, persona, model) in enumerate(speakers * 2):
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        f"{persona}\n\n"
+                        f"For this conversation, you are speaking directly to {partner}. "
+                        "Keep your personality and speaking style. "
+                        f"Talk about this topic: {request_body.topic}\n"
+                        f"Speak directly to {partner} in one or two short sentences. "
+                        "Write only what you would say aloud, without speaker labels, "
+                        "stage directions, or dialogue for anyone else."
+                    ),
+                },
+            ]
+            if speaker == "jarviz":
+                messages.append({"role": "user", "content": "Start the conversation."})
+            messages.extend(
+                {
+                    "role": "assistant" if previous_speaker == speaker else "user",
+                    "content": reply,
+                }
+                for previous_speaker, reply in history
+            )
+
+            def delta(text):
+                return json.dumps({
+                    "type": "delta", "speaker": speaker, "turn": turn, "text": text,
+                }) + "\n"
+
+            parts = []
+            opening = ""
+            try:
+                stream = await client.chat.completions.create(
+                    model=model, messages=messages, stream=True, max_tokens=256,
+                    stop=SCRIPT_STOPS,
+                )
+                async with stream:
+                    async for chunk in stream:
+                        if not chunk.choices or not (content := chunk.choices[0].delta.content):
+                            continue
+                        if not parts:
+                            # A label at the start can span several model chunks.
+                            opening += content
+                            if len(opening.lstrip()) < 24 and ":" not in opening:
+                                continue
+                            content = SPEAKER_LABEL.sub("", opening)
+                            opening = ""
+                            if not content:
+                                continue
+                        parts.append(content)
+                        yield delta(content)
+                if opening:
+                    content = SPEAKER_LABEL.sub("", opening)
+                    parts.append(content)
+                    yield delta(content)
+            except APIError:
+                logger.exception("Ollama failed to stream a reply for %s", speaker)
+                yield json.dumps({
+                    "type": "error", "message": f"{name} could not reply. Check that {model} is available in Ollama.",
+                }) + "\n"
+                return
+
+            reply = "".join(parts)
+            if not reply.strip():
+                yield json.dumps({
+                    "type": "error", "message": f"{name} returned an empty reply. Try another model.",
+                }) + "\n"
+                return
+            history.append((speaker, reply))
+
+        yield '{"type":"done"}\n'
+
+    return StreamingResponse(
+        generate(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
-
-    def generate():
-        for jarviz_chunk, liz_chunk in zip(jarviz_response, liz_response):
-            yield f"Jarvis: {jarviz_chunk['choices'][0]['delta'].get('content', '')}\n"
-            yield f"Liz: {liz_chunk['choices'][0]['delta'].get('content', '')}\n"
-
-    return StreamingResponse(generate(), media_type="text/plain")
-
-
