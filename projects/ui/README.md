@@ -75,10 +75,10 @@ any time.
 With Ollama running, start the chat API from `projects/multi-chat-bots`:
 
 ```bash
-uv run --locked uvicorn main:app --port 8001
+uv run --locked uvicorn main:app --port 8000
 ```
 
-The chat page uses `http://localhost:8001` by default. Set
+The chat page uses `http://localhost:8000` by default. Set
 `NEXT_PUBLIC_MULTI_CHAT_API_BASE_URL` before starting Next.js to override it.
 If the UI runs on a different origin, set `MULTI_CHAT_UI_ORIGINS` on the API
 to a comma-separated list of allowed frontend origins.
@@ -97,3 +97,35 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Interface and design system
+
+The four tools share shadcn/ui components, responsive navigation, and light, dark,
+and system appearance. Appearance is saved in the browser. Use Ctrl+K (or Cmd+K)
+to switch tools. The brochure supports preview, copy, and Markdown download.
+
+`design.md` records the visual direction. Semantic theme tokens live in
+`app/globals.css`. Shared components live in `components/studio-ui.jsx`; model
+names and provider logo mappings live in `components/model-identity.jsx`.
+The original studio logo is available in `public/brand/ai-studio-mark.svg`.
+Provider asset sources and licenses are retained in `public/brands/`.
+
+To add a shadcn component, run `npx shadcn@latest add <component>` from this folder.
+The app uses the Radix Nova preset with JavaScript and Tailwind 4.
+
+### Verify the UI
+
+```bash
+npm run lint
+npm run build
+npm run test:ui
+```
+
+Browser tests start a production preview on port 3100 and use controlled API
+responses, so they do not require model inference. Coverage includes themes,
+mobile navigation, keyboard dialogs, model selection and logos, copy/download,
+stream formats, error handling, cancellation, and automated accessibility checks.
+Windows uses installed Microsoft Edge. On other platforms, run
+`npx playwright install chromium` first, or set `PLAYWRIGHT_CHANNEL` to an installed
+browser channel. Screenshots and traces are written under `test-results/`.

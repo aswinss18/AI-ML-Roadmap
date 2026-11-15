@@ -1,86 +1,321 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
+import {
+  ArrowUpRight,
+  AudioLines,
+  BookOpen,
+  Check,
+  ChevronDown,
+  CircleHelp,
+  FileText,
+  Layers2,
+  Monitor,
+  Moon,
+  Search,
+  Sun,
+} from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
+import { Button } from "@/components/ui/button";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Separator } from "@/components/ui/separator";
 
-const WORKSPACE_LINKS = [
+export const WORKSPACE_LINKS = [
   {
     href: "/ai-assistant",
     label: "Genie assistant",
-    icon: (
-      <>
-        <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" />
-        <path d="M20 3v4M18 5h4" />
-      </>
-    ),
+    description: "A thinking partner for everyday work",
+    icon: AudioLines,
   },
   {
     href: "/sales-brochure-generator",
     label: "Sales brochure",
-    icon: (
-      <>
-        <path d="M5 4.75h14a1.25 1.25 0 0 1 1.25 1.25v12A1.25 1.25 0 0 1 19 19.25H5A1.25 1.25 0 0 1 3.75 18V6A1.25 1.25 0 0 1 5 4.75Z" />
-        <path d="M8 9h8M8 12.5h8M8 16h4" />
-      </>
-    ),
+    description: "Turn a website into a compelling story",
+    icon: FileText,
   },
   {
     href: "/ai-tutor",
     label: "AI tutor",
-    icon: (
-      <>
-        <path d="M4.5 5.75A2.25 2.25 0 0 1 6.75 3.5h10.5A2.25 2.25 0 0 1 19.5 5.75v8.5a2.25 2.25 0 0 1-2.25 2.25h-5.5l-4.5 3v-3h-.5A2.25 2.25 0 0 1 4.5 14.25Z" />
-        <path d="M8 8.5h8M8 12h5" />
-      </>
-    ),
+    description: "Make complex ideas click",
+    icon: BookOpen,
   },
   {
     href: "/multi-model-chat",
-    label: "Multi-model chat",
-    icon: (
-      <>
-        <path d="M3.5 5h12v8h-8l-4 3V5Z" />
-        <path d="M18.5 9h2v10l-4-3h-5M7 9h5" />
-      </>
-    ),
+    label: "Model conversations",
+    description: "Explore a topic from two perspectives",
+    icon: Layers2,
   },
 ];
 
+function ThemeMenu() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="appearance-button">
+          <Sun className="dark:hidden" />
+          <Moon className="hidden dark:block" />
+          <span>Appearance</span>
+          <ChevronDown className="ml-auto size-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-52">
+        {[
+          { value: "light", label: "Light", icon: Sun },
+          { value: "dark", label: "Dark", icon: Moon },
+          { value: "system", label: "System", icon: Monitor },
+        ].map(({ value, label, icon: Icon }) => (
+          <DropdownMenuItem key={value} onSelect={() => setTheme(value)}>
+            <Icon />
+            {label}
+            <Check
+              className={`ml-auto ${theme === value ? "opacity-100" : "opacity-0"}`}
+            />
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export default function WorkspaceSidebar() {
   const pathname = usePathname();
-
+  const router = useRouter();
+  const searchRef = useRef(null);
+  const helpRef = useRef(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const { setOpenMobile } = useSidebar();
+  useEffect(() => {
+    function onKey(event) {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   return (
-    <aside className="sidebar">
-      <Link className="brand" href="/sales-brochure-generator">
-        <span className="brand-mark" aria-hidden="true">A</span>
-        <span className="brand-name">ai<span> studio</span></span>
-      </Link>
+    <>
+      <Sidebar className="studio-sidebar" collapsible="offcanvas">
+        <SidebarHeader className="studio-sidebar-header">
+          <Link href="/" className="studio-brand" aria-label="AI Studio home">
+            <span className="studio-logo">
+              <BrandMark />
+            </span>
+            <span className="studio-wordmark">
+              AI Studio<span className="studio-wordmark-dot">.</span>
+            </span>
+          </Link>
+          <Button
+            ref={searchRef}
+            variant="outline"
+            className="studio-search"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search />
+            <span>Find a tool…</span>
+            <kbd>⌘ K</kbd>
+          </Button>
+        </SidebarHeader>
+        <SidebarContent>
+          <nav aria-label="Main navigation">
+            <SidebarGroup className="px-3">
+              <SidebarGroupLabel className="nav-section-label">
+                WORKSPACE
+              </SidebarGroupLabel>
+              <SidebarMenu className="gap-1.5">
+                {WORKSPACE_LINKS.map(({ href, label, icon: Icon }) => (
+                  <SidebarMenuItem key={href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === href}
+                      className="studio-nav-link"
+                    >
+                      <Link
+                        href={href}
+                        aria-current={pathname === href ? "page" : undefined}
+                        onClick={() => setOpenMobile(false)}
+                      >
+                        <Icon />
+                        <span>{label}</span>
+                        {pathname === href && (
+                          <span className="nav-active-dot" />
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          </nav>
+        </SidebarContent>
+        <SidebarFooter className="p-3 gap-1">
+          <ThemeMenu />
+          <Button
+            ref={helpRef}
+            variant="ghost"
+            className="sidebar-help"
+            onClick={() => setHelpOpen(true)}
+          >
+            <CircleHelp />
+            <span>Getting started</span>
+            <ArrowUpRight className="ml-auto size-3.5" />
+          </Button>
+          <Separator className="my-3" />
+          <div className="workspace-identity">
+            <span className="workspace-avatar">
+              <BrandMark />
+            </span>
+            <div>
+              <strong>Personal workspace</strong>
+              <span>Local workspace</span>
+            </div>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+      <CommandDialog
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          searchRef.current?.focus();
+        }}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        title="Find a tool"
+        description="Search and switch between your studio tools."
+      >
+        <Command>
+          <CommandInput placeholder="What would you like to do?" />
+          <CommandList>
+            <CommandEmpty>
+              No tools found. Try “tutor” or “brochure”.
+            </CommandEmpty>
+            <CommandGroup heading="Workspace">
+              {WORKSPACE_LINKS.map(
+                ({ href, label, description, icon: Icon }) => (
+                  <CommandItem
+                    key={href}
+                    value={`${label} ${description}`}
+                    onSelect={() => {
+                      setSearchOpen(false);
+                      setOpenMobile(false);
+                      router.push(href);
+                    }}
+                  >
+                    <Icon />
+                    <div>
+                      <p>{label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {description}
+                      </p>
+                    </div>
+                    <ArrowUpRight className="ml-auto" />
+                  </CommandItem>
+                ),
+              )}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </CommandDialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            helpRef.current?.focus();
+          }}
+          className="sm:max-w-lg"
+        >
+          <DialogHeader>
+            <DialogTitle>Your workspace, explained.</DialogTitle>
+            <DialogDescription>
+              Four tools for creating, learning, and exploring ideas with AI.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="help-tools">
+            {WORKSPACE_LINKS.map(({ href, label, description, icon: Icon }) => (
+              <Button key={href} variant="ghost" asChild className="help-tool">
+                <Link
+                  href={href}
+                  onClick={() => {
+                    setHelpOpen(false);
+                    setOpenMobile(false);
+                  }}
+                >
+                  <Icon />
+                  <span>
+                    <strong>{label}</strong>
+                    <small>{description}</small>
+                  </span>
+                  <ArrowUpRight />
+                </Link>
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Your tools connect to the configured AI services. If a model is
+            unavailable, check that the service and Ollama are running, then
+            refresh the model list.
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
 
-      <div className="sidebar-label">WORKSPACE</div>
-      <nav className="workspace-nav" aria-label="Main navigation">
-        {WORKSPACE_LINKS.map((link) => {
-          const isCurrent = pathname === link.href;
-
-          return (
-            <Link
-              key={link.href}
-              className={`nav-link${isCurrent ? " active" : ""}`}
-              href={link.href}
-              aria-current={isCurrent ? "page" : undefined}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {link.icon}
-              </svg>
-              <span>{link.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="sidebar-footer">
-        <span className="status-dot" />
-        <span>AI-powered workspace</span>
+export function WorkspaceHeader() {
+  const pathname = usePathname();
+  const tool = WORKSPACE_LINKS.find((item) => item.href === pathname);
+  return (
+    <header className="workspace-header">
+      <div className="flex min-w-0 items-center gap-3">
+        <SidebarTrigger className="size-9" />
+        <Separator orientation="vertical" className="!h-4" />
+        <span className="breadcrumb-workspace">Workspace</span>
+        <span className="text-muted-foreground/50">/</span>
+        <span className="header-current">{tool?.label || "AI Studio"}</span>
       </div>
-    </aside>
+      <span className="header-caption">
+        AI Studio <span className="header-caption-divider">/</span> Personal
+        workspace
+      </span>
+    </header>
   );
 }

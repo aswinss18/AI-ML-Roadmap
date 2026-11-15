@@ -1,5 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import WorkspaceSidebar from "./components/workspace-sidebar";
+import WorkspaceSidebar, {
+  WorkspaceHeader,
+} from "./components/workspace-sidebar";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,12 +27,28 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        <div className="app-shell">
-          <WorkspaceSidebar />
-          <main className="main-panel">{children}</main>
-        </div>
+        <ThemeProvider>
+          <TooltipProvider>
+            <SidebarProvider style={{ "--sidebar-width": "16rem" }}>
+              <a href="#main-content" className="skip-link">
+                Skip to content
+              </a>
+              <WorkspaceSidebar />
+              <SidebarInset className="studio-main">
+                <WorkspaceHeader />
+                <div id="main-content" tabIndex={-1}>
+                  {children}
+                </div>
+              </SidebarInset>
+            </SidebarProvider>
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

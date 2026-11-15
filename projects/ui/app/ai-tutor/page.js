@@ -1,24 +1,39 @@
 "use client";
 
-import { useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  Compass,
+  Copy,
+  FlaskConical,
+  GraduationCap,
+  Lightbulb,
+  ListChecks,
+  Loader2,
+  MessageCircle,
+  Square,
+  Waves,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ErrorNotice,
+  Markdown,
+  ModelBadge,
+  ModelSelect,
+  PageHeading,
+  PromptCard,
+  ResponseStatus,
+  Thinking,
+  ToolFooter,
+} from "@/components/studio-ui";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-const AVAILABLE_MODELS = [
-  "meditron:latest",
-  "deepseek-r1:1.5b",
-  "llama3.2:latest",
-  "gpt-oss:latest",
-  "phi3:latest",
-  "gemma3:270m",
-];
-const SUGGESTED_QUESTIONS = [
-  "Why does the sky look blue?",
-  "Explain fractions with a simple example",
-  "What is the difference between weather and climate?",
-];
 
 function getErrorMessage(detail, fallback) {
   if (typeof detail === "string" && detail.trim()) {
@@ -69,18 +84,22 @@ export default function AiTutorPage() {
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState("");
   const abortControllerRef = useRef(null);
+  const inputRef = useRef(null);
+  const [answerModel, setAnswerModel] = useState(model);
+  useEffect(() => () => abortControllerRef.current?.abort(), []);
 
   async function handleSubmit(event) {
     event.preventDefault();
     const cleanQuestion = question.trim();
 
-    if (!cleanQuestion || isStreaming) {
+    if (!cleanQuestion || abortControllerRef.current) {
       return;
     }
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setSubmittedQuestion(cleanQuestion);
+    setAnswerModel(model);
     setAnswer("");
     setError("");
     setWasStopped(false);
@@ -133,14 +152,16 @@ export default function AiTutorPage() {
         const { value, done } = await reader.read();
         buffer += decoder.decode(value, { stream: !done });
 
-        let eventBoundary = buffer.indexOf("\n\n");
+        let eventBoundary = buffer.search(/\r?\n\r?\n/);
         while (eventBoundary !== -1) {
           const rawEvent = buffer.slice(0, eventBoundary);
-          buffer = buffer.slice(eventBoundary + 2);
+          buffer = buffer.slice(
+            eventBoundary + (buffer[eventBoundary] === "\r" ? 4 : 2),
+          );
           readEvent(rawEvent, (content) => {
             setAnswer((currentAnswer) => currentAnswer + content);
           });
-          eventBoundary = buffer.indexOf("\n\n");
+          eventBoundary = buffer.search(/\r?\n\r?\n/);
         }
 
         if (done) {
@@ -158,7 +179,7 @@ export default function AiTutorPage() {
       } else {
         setError(
           requestError instanceof TypeError
-            ? "Couldn't reach the AI tutor API. Check that the FastAPI server is running on port 8000."
+            ? "Couldn't reach the AI tutor API. Check that the tutor service is running, then try again."
             : requestError.message ||
                 "Something went wrong while creating your answer. Please try again.",
         );
@@ -186,285 +207,229 @@ export default function AiTutorPage() {
   }
 
   return (
-    <div className="page-content tutor-page">
-      <header className="topbar">
-        <div className="breadcrumb">
-          <span>Workspace</span>
-          <span className="breadcrumb-separator" aria-hidden="true">/</span>
-          <span className="breadcrumb-current">AI tutor</span>
-        </div>
-        <div className="topbar-badge">
-          <span className="sparkle" aria-hidden="true">✦</span>
-          Your patient study partner
-        </div>
-      </header>
+    <div className="studio-page tutor-page">
+      <PageHeading
+        eyebrow="FOLLOW YOUR CURIOSITY"
+        title="AI tutor"
+        description="Understand a new concept, work through a question, or explore an idea in depth."
+        icon={BookOpen}
+      />
 
-      <section className="tutor-intro">
-        <div className="eyebrow"><span /> YOUR PERSONAL AI TUTOR</div>
-        <div className="tutor-heading-row">
-          <div>
-            <h1>Big questions,<br />made simple.</h1>
-            <p>
-              Bring any question. Get a clear, step by step explanation that
-              helps the idea really click.
-            </p>
-          </div>
-          <div className="tutor-illustration" aria-hidden="true">
-            <span className="illustration-orbit illustration-orbit-one" />
-            <span className="illustration-orbit illustration-orbit-two" />
-            <span className="illustration-core">
-              <svg viewBox="0 0 32 32">
-                <path d="M16 5.5 18.7 13l7.8 3-7.8 2.8-2.7 7.7-2.8-7.7-7.7-2.8 7.7-3L16 5.5Z" />
-              </svg>
-            </span>
-            <span className="illustration-caption">Curiosity starts<br />with one question</span>
-          </div>
-        </div>
-      </section>
-
-      <div className="tutor-layout">
-        <div className="tutor-main-column">
-          <section className="tutor-composer" aria-labelledby="question-label">
+      <div className="tutor-workspace">
+        <div className="tutor-main">
+          <Card className="question-composer">
             <form onSubmit={handleSubmit}>
-              <div className="tutor-composer-top">
-                <div>
-                  <label className="tutor-field-label" htmlFor="tutor-question" id="question-label">
-                    What would you like to understand?
-                  </label>
-                  <p className="tutor-field-hint" id="question-hint">
-                    Ask in your own words. There are no wrong questions.
-                  </p>
-                </div>
-                <label className="model-select tutor-model-select" htmlFor="tutor-model">
-                  <span>MODEL</span>
-                  <select
-                    id="tutor-model"
-                    value={model}
-                    onChange={(event) => setModel(event.target.value)}
-                    disabled={isStreaming}
-                  >
-                    {AVAILABLE_MODELS.map((availableModel) => (
-                      <option key={availableModel} value={availableModel}>
-                        {availableModel}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+              <div className="composer-heading">
+                <Label htmlFor="tutor-question">
+                  What would you like to understand?
+                </Label>
+                <MessageCircle size={17} />
               </div>
-              <textarea
+              <Textarea
+                ref={inputRef}
                 id="tutor-question"
+                className="question-textarea"
                 value={question}
                 onChange={(event) => setQuestion(event.target.value)}
-                placeholder="For example, how do airplanes stay in the air?"
+                placeholder="Ask a question, unpack an idea, or explore something new…"
                 rows={4}
                 required
                 disabled={isStreaming}
                 aria-describedby="question-hint"
               />
-              <div className="tutor-composer-footer">
-                <span className="tutor-privacy-note">
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M10 2.75 16 5v4.3c0 3.7-2.4 6.1-6 7.95-3.6-1.85-6-4.25-6-7.95V5l6-2.25Z" />
-                    <path d="m7.5 9.75 1.65 1.65 3.5-3.5" />
-                  </svg>
-                  Powered by your selected Ollama model
-                </span>
-                <div className="tutor-form-actions">
-                  {isStreaming && (
-                    <button
-                      className="tutor-stop-button"
+              <div className="composer-controls">
+                <ModelSelect
+                  id="tutor-model"
+                  label="YOUR MODEL"
+                  value={model}
+                  onValueChange={setModel}
+                  disabled={isStreaming}
+                />
+                <div className="composer-action-group">
+                  {isStreaming ? (
+                    <Button
                       type="button"
+                      variant="outline"
                       onClick={stopResponse}
                     >
+                      <Square className="size-3" />
                       Stop response
-                    </button>
-                  )}
-                  <button
-                    className="tutor-submit-button"
+                    </Button>
+                  ) : null}
+                  <Button
+                    className="primary-action"
                     type="submit"
                     disabled={isStreaming || !question.trim()}
                   >
-                    {isStreaming ? "Teaching..." : "Help me understand"}
-                    {!isStreaming && (
-                      <svg viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M4 10h12M10 4l6 6-6 6" />
-                      </svg>
+                    {isStreaming ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Thinking…
+                      </>
+                    ) : (
+                      <>
+                        Help me understand
+                        <ArrowRight />
+                      </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </form>
-          </section>
-
-          {error && (
-            <div className="tutor-error" role="alert">
-              <span className="tutor-error-mark" aria-hidden="true">!</span>
-              <p>{error}</p>
-            </div>
-          )}
-
-          <section className="tutor-answer-section" aria-label="Tutor response">
-            {submittedQuestion ? (
-              <>
-                <div className="tutor-question-card">
-                  <span className="tutor-message-avatar question-avatar" aria-hidden="true">Y</span>
-                  <div>
-                    <span className="tutor-message-label">YOUR QUESTION</span>
-                    <p>{submittedQuestion}</p>
-                  </div>
-                </div>
-                <article className="tutor-answer-card" aria-labelledby="answer-heading">
-                  <header className="tutor-answer-header">
-                    <div className="tutor-answer-identity">
-                      <span className="tutor-message-avatar answer-avatar" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                          <path d="m12 3 2 5.4 5.5 2-5.5 2.1-2 5.5-2-5.5-5.5-2.1 5.5-2L12 3Z" />
-                        </svg>
-                      </span>
-                      <div>
-                        <h2 id="answer-heading">Your tutor</h2>
-                        <span className="tutor-model-caption">
-                          {isStreaming ? "Putting it into simple words" : model}
-                        </span>
-                      </div>
-                    </div>
-                    {answer && (
-                      <button
-                        className="tutor-copy-button"
-                        type="button"
-                        onClick={copyAnswer}
-                        aria-label={copied ? "Answer copied" : "Copy answer"}
-                      >
-                        <svg viewBox="0 0 20 20" aria-hidden="true">
-                          <rect x="7" y="6" width="9" height="11" rx="1.5" />
-                          <path d="M12.5 6V4.5A1.5 1.5 0 0 0 11 3H5.5A1.5 1.5 0 0 0 4 4.5v8A1.5 1.5 0 0 0 5.5 14H7" />
-                        </svg>
-                        {copied ? "Copied" : "Copy"}
-                      </button>
-                    )}
-                  </header>
-                  <div className="tutor-answer-body" aria-live="off">
-                    {answer ? (
-                      <div className="tutor-markdown">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            table: ({ children }) => (
-                              <div className="tutor-table-wrap">
-                                <table>{children}</table>
-                              </div>
-                            ),
-                          }}
-                        >
-                          {answer}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <div className="tutor-thinking">
-                        <span className="thinking-dots" aria-hidden="true">
-                          <span /><span /><span />
-                        </span>
-                        <span>Finding a clear way to explain it...</span>
-                      </div>
-                    )}
-                  </div>
-                  {copyError && <p className="tutor-copy-error" role="status">{copyError}</p>}
-                  <footer className="tutor-answer-footer">
-                    <span className="tutor-stream-status" role="status">
-                      <span className={isStreaming ? "stream-status-dot is-active" : "stream-status-dot"} />
-                      {isStreaming
-                        ? "Answer is streaming"
-                        : wasStopped
-                          ? "Response stopped"
-                          : error
-                            ? "Response interrupted"
-                            : "Answer complete"}
-                    </span>
-                    <span>Take your time. Learning happens one step at a time.</span>
-                  </footer>
-                </article>
-              </>
-            ) : (
-              <div className="tutor-empty-state">
-                <div className="empty-state-icon" aria-hidden="true">
-                  <svg viewBox="0 0 48 48">
-                    <path d="M8 12.5A3.5 3.5 0 0 1 11.5 9H24v29H11.5A3.5 3.5 0 0 0 8 41.5v-29Z" />
-                    <path d="M40 12.5A3.5 3.5 0 0 0 36.5 9H24v29h12.5a3.5 3.5 0 0 1 3.5 3.5v-29Z" />
-                    <path d="M13 16h6M13 21h6M29 16h6M29 21h6" />
-                  </svg>
-                </div>
-                <div>
-                  <h2>Your next “aha” moment starts here</h2>
-                  <p>Send a question and your tutor will build the answer as it thinks.</p>
-                </div>
-                <div className="suggested-questions" aria-label="Try asking">
-                  {SUGGESTED_QUESTIONS.map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      onClick={() => setQuestion(suggestion)}
-                      disabled={isStreaming}
-                    >
-                      {suggestion}
-                      <svg viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M3 8h10M8 3l5 5-5 5" />
-                      </svg>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        </div>
-
-        <aside className="tutor-guide-card" aria-labelledby="guide-heading">
-          <div className="guide-card-topline">
-            <span className="guide-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3.25 14.3 9.7l6.45 2.3-6.45 2.3L12 20.75l-2.3-6.45L3.25 12l6.45-2.3L12 3.25Z" />
-              </svg>
-            </span>
-            <span>LEARNING, YOUR WAY</span>
-          </div>
-          <h2 id="guide-heading">A good tutor makes space for curiosity.</h2>
-          <p className="guide-description">
-            Your AI tutor explains ideas in simple language, then adds the
-            context that makes them stick.
+          </Card>
+          <p className="field-hint -mt-2" id="question-hint">
+            A little context helps. Tell your tutor what you already know.
           </p>
-          <ol className="guide-steps">
-            <li>
-              <span>01</span>
-              <div>
-                <h3>Ask freely</h3>
-                <p>Start with what you know, or what feels confusing.</p>
+          <ErrorNotice title="Your answer couldn't finish">{error}</ErrorNotice>
+          {submittedQuestion ? (
+            <section aria-label="Tutor response">
+              <div className="question-echo">
+                <span>Y</span>
+                <div>
+                  <strong>YOUR QUESTION</strong>
+                  <p>{submittedQuestion}</p>
+                </div>
               </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <h3>Follow the idea</h3>
-                <p>Watch the explanation arrive, one piece at a time.</p>
+              <Card className="response-card">
+                <header className="response-card-header">
+                  <span className="response-avatar">
+                    <GraduationCap size={18} />
+                  </span>
+                  <div>
+                    <h2>Your tutor</h2>
+                    <ModelBadge>{answerModel}</ModelBadge>
+                  </div>
+                  {answer && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyAnswer}
+                      aria-label={copied ? "Answer copied" : "Copy answer"}
+                    >
+                      {copied ? <Check /> : <Copy />}
+                      {copied ? "Copied" : "Copy"}
+                    </Button>
+                  )}
+                </header>
+                <div
+                  className="response-card-body"
+                  aria-live="polite"
+                  aria-busy={isStreaming}
+                >
+                  {answer ? (
+                    <Markdown>{answer}</Markdown>
+                  ) : isStreaming ? (
+                    <Thinking text="Finding a clear way to explain it…" />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {wasStopped
+                        ? "You stopped this response. Ask again whenever you're ready."
+                        : "No answer arrived. You can try your question again."}
+                    </p>
+                  )}
+                </div>
+                {copyError && (
+                  <p className="copy-status" role="status">
+                    {copyError}
+                  </p>
+                )}
+                <footer className="response-card-footer">
+                  <ResponseStatus active={isStreaming}>
+                    {isStreaming
+                      ? "Answer is streaming"
+                      : wasStopped
+                        ? "Response stopped"
+                        : error
+                          ? "Response interrupted"
+                          : "Answer complete"}
+                  </ResponseStatus>
+                  <span>Review important details for accuracy.</span>
+                </footer>
+              </Card>
+            </section>
+          ) : (
+            <section className="starter-section">
+              <div className="starter-section-title">
+                <h2>A few places to start</h2>
+                <span>Follow what interests you</span>
               </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <h3>Keep exploring</h3>
-                <p>Ask a follow up whenever you want to go deeper.</p>
+              <div className="starter-grid">
+                {[
+                  {
+                    icon: FlaskConical,
+                    title: "Everyday science",
+                    description: "Why does the sky look blue?",
+                    prompt: "Why does the sky look blue?",
+                  },
+                  {
+                    icon: ListChecks,
+                    title: "Make the math click",
+                    description: "Fractions, without the confusion.",
+                    prompt: "Explain fractions with a simple example",
+                  },
+                  {
+                    icon: Waves,
+                    title: "Understand our world",
+                    description: "Weather vs. climate. What's the difference?",
+                    prompt:
+                      "What is the difference between weather and climate?",
+                  },
+                ].map(({ prompt, ...props }) => (
+                  <PromptCard
+                    key={prompt}
+                    {...props}
+                    onClick={() => {
+                      setQuestion(prompt);
+                      inputRef.current?.focus();
+                    }}
+                  />
+                ))}
               </div>
-            </li>
-          </ol>
-          <div className="guide-card-footer">
-            <span className="guide-online-dot" />
-            <span>Ready whenever you are</span>
+              <div className="learning-empty">
+                <span>
+                  <BookOpen size={30} strokeWidth={1.3} />
+                </span>
+                <div>
+                  <h3>Your explanation will appear here.</h3>
+                  <p>
+                    Send a question and watch the explanation come together.
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+        <aside className="study-sidebar" aria-label="Tips for learning">
+          <span className="small-section-label">A LITTLE GUIDANCE</span>
+          <div className="study-tip">
+            <Lightbulb size={20} />
+            <h3>Start with the confusing part.</h3>
+            <p>
+              You don&apos;t need the perfect question. A rough idea is a good
+              place to begin.
+            </p>
+          </div>
+          <div className="study-tip">
+            <ListChecks size={20} />
+            <h3>Ask for an example.</h3>
+            <p>
+              Make an abstract idea feel familiar with a real situation or a
+              simple analogy.
+            </p>
+          </div>
+          <div className="study-tip">
+            <Compass size={20} />
+            <h3>Go at your own pace.</h3>
+            <p>
+              Ask a new question to explore another angle. Every explanation is
+              a fresh start.
+            </p>
           </div>
         </aside>
       </div>
-
-      <footer className="tutor-page-footer">
-        <span>Made for curious minds.</span>
-        <span>Clear answers. No rush.</span>
-      </footer>
+      <ToolFooter>
+        Explanations are generated by your selected model.
+      </ToolFooter>
     </div>
   );
 }
