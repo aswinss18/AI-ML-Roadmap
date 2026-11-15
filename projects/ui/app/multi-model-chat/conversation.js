@@ -2,35 +2,33 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowLeftRight,
   ArrowRight,
+  ArrowUpRight,
   Layers2,
   MessageCircle,
   RefreshCw,
   Square,
+  List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { ModelIcon } from "@/components/model-identity";
 import {
   ErrorNotice,
   Markdown,
   ModelBadge,
   ModelSelect,
   ResponseStatus,
-  StepLabel,
   Thinking,
 } from "@/components/studio-ui";
 
+const TOPICS = [
+  "A city on Mars",
+  "The future of learning",
+  "Can AI be creative?",
+];
 const API_URL = (
   process.env.NEXT_PUBLIC_MULTI_CHAT_API_BASE_URL || "http://localhost:8000"
 ).replace(/\/+$/, "");
@@ -194,6 +192,14 @@ export default function Conversation() {
     }
   }
 
+  const sessionLabel =
+    {
+      streaming: "In progress",
+      complete: "Complete",
+      stopped: "Stopped",
+      failed: "Interrupted",
+    }[status] || "Not started";
+
   const modelError = {
     error:
       "Could not load models. Check that the chat API and Ollama are running.",
@@ -201,138 +207,101 @@ export default function Conversation() {
   }[modelStatus];
 
   return (
-    <div className="multi-workspace">
-      <Card className="config-card multi-config">
-        <CardHeader>
-          <StepLabel number="01">Set the conversation</StepLabel>
-          <CardTitle>Configure a conversation</CardTitle>
-          <CardDescription>
-            Choose a topic and a model for each participant.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="studio-form" onSubmit={startConversation}>
-            <div className="field-group">
-              <Label htmlFor="chat-topic">What&apos;s on the table?</Label>
-              <Textarea
-                ref={topicRef}
-                id="chat-topic"
-                value={topic}
-                onChange={(event) => setTopic(event.target.value)}
-                placeholder="How would you design a city on Mars?"
-                maxLength={1000}
-                required
-                disabled={isStreaming}
-                aria-describedby="topic-hint"
-              />
-              <p id="topic-hint" className="field-hint">
-                An open question makes a great conversation.
-              </p>
-              <div className="multi-topic-ideas">
-                {[
-                  "A city on Mars",
-                  "The future of learning",
-                  "Can AI be creative?",
-                ].map((idea) => (
-                  <Button
-                    key={idea}
-                    type="button"
-                    variant="outline"
-                    disabled={isStreaming}
-                    onClick={() => {
-                      setTopic(idea);
-                      topicRef.current?.focus();
-                    }}
-                  >
-                    {idea}
-                  </Button>
-                ))}
+    <div className="multi-workspace document-workbench">
+      <aside className="workbench-inspector" aria-label="Conversation settings">
+        <div className="inspector-heading">
+          <Layers2 size={16} />
+          <h2>Participants</h2>
+        </div>
+        <div className="inspector-section">
+          <div className="participant-list">
+            {Object.entries(SPEAKERS).map(([speaker, name], index) => (
+              <div className="participant" key={speaker}>
+                <div className="participant-heading">
+                  <span className={`participant-avatar ${speaker}`}>
+                    {name[0]}
+                  </span>
+                  <strong>{name}</strong>
+                  <span>Participant {index + 1}</span>
+                </div>
+                <ModelSelect
+                  id={`${speaker}-model`}
+                  label={`${name}'s model`}
+                  value={selection[speaker]}
+                  models={models}
+                  loading={modelStatus === "loading"}
+                  disabled={isStreaming || modelStatus !== "ready"}
+                  onValueChange={(model) =>
+                    setSelection((current) => ({
+                      ...current,
+                      [speaker]: model,
+                    }))
+                  }
+                />
               </div>
-            </div>
-            <Separator />
+            ))}
+          </div>
+          <p className="field-hint">
+            Choose different models to compare their thinking.
+          </p>
+          <ErrorNotice
+            title="Models aren't ready"
+            action={
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => {
+                  setModelStatus("loading");
+                  setModelRequest((current) => current + 1);
+                }}
+              >
+                <RefreshCw />
+                Refresh models
+              </Button>
+            }
+          >
+            {modelError}
+          </ErrorNotice>
+        </div>
+        <div className="inspector-section">
+          <div className="section-caption">
+            <h3>Session details</h3>
+          </div>
+          <dl className="session-details">
             <div>
-              <span className="participant-label">PARTICIPANTS</span>
-              <div className="participant-list">
-                {Object.entries(SPEAKERS).map(([speaker, name]) => (
-                  <div className="participant" key={speaker}>
-                    <span className={`participant-avatar ${speaker}`}>
-                      {name[0]}
-                    </span>
-                    <ModelSelect
-                      id={`${speaker}-model`}
-                      label={`${name}'s model`}
-                      value={selection[speaker]}
-                      models={models}
-                      loading={modelStatus === "loading"}
-                      disabled={isStreaming || modelStatus !== "ready"}
-                      onValueChange={(model) =>
-                        setSelection((current) => ({
-                          ...current,
-                          [speaker]: model,
-                        }))
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
+              <dt>Status</dt>
+              <dd>{sessionLabel}</dd>
             </div>
-            <ErrorNotice
-              title="Models aren't ready"
-              action={
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => {
-                    setModelStatus("loading");
-                    setModelRequest((current) => current + 1);
-                  }}
-                >
-                  <RefreshCw />
-                  Refresh models
-                </Button>
-              }
-            >
-              {modelError}
-            </ErrorNotice>
-            <Button
-              className="primary-action w-full"
-              type={isStreaming ? "button" : "submit"}
-              variant={isStreaming ? "outline" : "default"}
-              onClick={
-                isStreaming ? () => activeRequest.current?.abort() : undefined
-              }
-              disabled={
-                !isStreaming && (!topic.trim() || modelStatus !== "ready")
-              }
-            >
-              {isStreaming ? (
-                <>
-                  <Square />
-                  Stop conversation
-                </>
-              ) : (
-                <>
-                  <MessageCircle />
-                  Start conversation
-                  <ArrowRight className="ml-auto" />
-                </>
-              )}
-            </Button>
-            <p className="form-footnote">
-              {modelStatus === "loading"
-                ? "Finding your available models…"
-                : "Models take turns responding to the shared topic."}
-            </p>
-          </form>
-        </CardContent>
-      </Card>
-      <Card className="conversation-panel">
-        <div className="preview-toolbar">
-          <span>
-            <MessageCircle size={14} />
-            The conversation
+            <div>
+              <dt>Conversation turns</dt>
+              <dd>{messages.length}</dd>
+            </div>
+            <div>
+              <dt>Response order</dt>
+              <dd>Alternating</dd>
+            </div>
+          </dl>
+        </div>
+        <div className="inspector-footnote">
+          <MessageCircle size={17} />
+          <p>
+            One shared topic.
+            <br />
+            Two different perspectives.
+          </p>
+          <span>Each participant builds on the conversation so far.</span>
+        </div>
+      </aside>
+      <section
+        className={`conversation-panel ${run ? "has-conversation" : "is-empty"}`}
+        aria-label="Model discussion"
+      >
+        <div className="editor-toolbar">
+          <span className="toolbar-title">
+            <List size={16} />
+            Transcript
           </span>
-          {run ? (
+          {run && (
             <ResponseStatus active={isStreaming}>
               {
                 {
@@ -343,29 +312,29 @@ export default function Conversation() {
                 }[status]
               }
             </ResponseStatus>
-          ) : (
-            <Badge variant="outline">READY WHEN YOU ARE</Badge>
           )}
         </div>
-        {run ? (
-          <>
-            <div className="conversation-subject">
-              <span>ON THE TABLE</span>
-              <h3>{run.topic}</h3>
-            </div>
-            <div
-              className="conversation-turns"
-              role="log"
-              aria-label="Conversation turns"
-              aria-live="polite"
-              aria-busy={isStreaming}
-              ref={transcriptRef}
-              onScroll={(event) => {
-                const el = event.currentTarget;
-                followRef.current =
-                  el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-              }}
-            >
+        {run && (
+          <div className="conversation-subject">
+            <span>DISCUSSION TOPIC</span>
+            <h2>{run.topic}</h2>
+          </div>
+        )}
+        <div
+          className="conversation-turns"
+          role={run ? "log" : undefined}
+          aria-label={run ? "Conversation turns" : undefined}
+          aria-live={run ? "polite" : undefined}
+          aria-busy={isStreaming}
+          ref={transcriptRef}
+          onScroll={(event) => {
+            const el = event.currentTarget;
+            followRef.current =
+              el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+          }}
+        >
+          {run ? (
+            <>
               {!messages.length &&
                 (isStreaming ? (
                   <Thinking text="Waiting for Jarviz to get things started…" />
@@ -394,41 +363,110 @@ export default function Conversation() {
                   </div>
                 </article>
               ))}
-            </div>
-            {error && (
-              <div className="p-5 pt-0">
-                <ErrorNotice title="Conversation interrupted">
-                  {error}
-                </ErrorNotice>
+            </>
+          ) : (
+            <div className="discussion-intro">
+              <span className="intro-caption">TWO MODELS. ONE QUESTION.</span>
+              <h2>See both sides of an idea.</h2>
+              <p>
+                Give Liz and Jarviz a topic. Follow the thinking as it unfolds.
+              </p>
+              <div className="discussion-ready">
+                <ModelIcon model={selection.liz} />
+                <span>Liz</span>
+                <span className="discussion-plus">+</span>
+                <ModelIcon model={selection.jarviz} />
+                <span>Jarviz</span>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="conversation-empty">
-            <div className="conversation-duet" aria-hidden="true">
-              <span className="participant-avatar">L</span>
-              <ArrowLeftRight size={25} strokeWidth={1} />
-              <span className="participant-avatar jarviz">J</span>
             </div>
-            <h3>A conversation between models.</h3>
-            <p>
-              Choose a topic and let two AI models explore it together. Their
-              responses will appear here.
-            </p>
-            <Badge variant="outline">
-              <Layers2 size={12} />
-              Liz + Jarviz
-            </Badge>
-          </div>
-        )}
-        <div className="preview-bottom">
-          <Layers2 size={13} />
-          <span>Liz + Jarviz</span>
-          <span className="ml-auto">
-            {run ? `${messages.length} turns` : "Waiting to begin"}
+          )}
+        </div>
+        <div className="discussion-compose-area">
+          <ErrorNotice title="Conversation interrupted">{error}</ErrorNotice>
+          <Card className="question-composer">
+            <form onSubmit={startConversation}>
+              <Label htmlFor="chat-topic" className="sr-only">
+                What&apos;s on the table?
+              </Label>
+              <Textarea
+                className="question-textarea"
+                ref={topicRef}
+                id="chat-topic"
+                value={topic}
+                onChange={(event) => setTopic(event.target.value)}
+                placeholder="What should they talk about?"
+                maxLength={1000}
+                required
+                disabled={isStreaming}
+                aria-describedby="topic-hint"
+              />
+              <div className="discussion-composer-controls">
+                <span id="topic-hint">
+                  {modelStatus === "loading"
+                    ? "Finding models…"
+                    : "Models take turns responding"}
+                </span>
+                <Button
+                  className="primary-action"
+                  type={isStreaming ? "button" : "submit"}
+                  variant={isStreaming ? "outline" : "default"}
+                  onClick={
+                    isStreaming
+                      ? (event) => {
+                          event.preventDefault();
+                          activeRequest.current?.abort();
+                        }
+                      : undefined
+                  }
+                  disabled={
+                    !isStreaming && (!topic.trim() || modelStatus !== "ready")
+                  }
+                >
+                  {isStreaming ? (
+                    <>
+                      <Square />
+                      Stop conversation
+                    </>
+                  ) : (
+                    <>
+                      Start conversation
+                      <ArrowRight />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Card>
+          {!run && (
+            <div className="discussion-topics">
+              <span>EXPLORE A STARTING POINT</span>
+              {TOPICS.map((idea, index) => (
+                <Button
+                  key={idea}
+                  variant="ghost"
+                  onClick={() => {
+                    setTopic(idea);
+                    topicRef.current?.focus();
+                  }}
+                >
+                  <span className="topic-index">0{index + 1}</span>
+                  <span>{idea}</span>
+                  <ArrowUpRight size={15} />
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="editor-statusbar">
+          <span>
+            <span className="small-dot" />
+            Liz + Jarviz
+          </span>
+          <span>
+            {run ? `${messages.length} turns` : "Session not started"}
           </span>
         </div>
-      </Card>
+      </section>
     </div>
   );
 }

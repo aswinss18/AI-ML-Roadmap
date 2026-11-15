@@ -2,19 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
+  ArrowUp,
   BookOpen,
   Check,
-  Compass,
   Copy,
   FlaskConical,
   GraduationCap,
-  Lightbulb,
   ListChecks,
-  Loader2,
-  MessageCircle,
   Square,
   Waves,
+  ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,12 +22,27 @@ import {
   Markdown,
   ModelBadge,
   ModelSelect,
-  PageHeading,
-  PromptCard,
   ResponseStatus,
   Thinking,
-  ToolFooter,
 } from "@/components/studio-ui";
+
+const STARTERS = [
+  {
+    icon: FlaskConical,
+    title: "Everyday science",
+    prompt: "Why does the sky look blue?",
+  },
+  {
+    icon: ListChecks,
+    title: "Make the math click",
+    prompt: "Explain fractions with a simple example",
+  },
+  {
+    icon: Waves,
+    title: "Understand our world",
+    prompt: "What is the difference between weather and climate?",
+  },
+];
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -85,8 +97,15 @@ export default function AiTutorPage() {
   const [copyError, setCopyError] = useState("");
   const abortControllerRef = useRef(null);
   const inputRef = useRef(null);
+  const transcriptRef = useRef(null);
+  const followRef = useRef(true);
   const [answerModel, setAnswerModel] = useState(model);
   useEffect(() => () => abortControllerRef.current?.abort(), []);
+
+  useEffect(() => {
+    if (followRef.current && transcriptRef.current)
+      transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
+  }, [answer, submittedQuestion]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -98,6 +117,7 @@ export default function AiTutorPage() {
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
+    followRef.current = true;
     setSubmittedQuestion(cleanQuestion);
     setAnswerModel(model);
     setAnswer("");
@@ -192,8 +212,11 @@ export default function AiTutorPage() {
     }
   }
 
-  function stopResponse() {
+  function stopResponse(event) {
+    event.preventDefault();
     abortControllerRef.current?.abort();
+    setWasStopped(true);
+    setIsStreaming(false);
   }
 
   async function copyAnswer() {
@@ -207,229 +230,185 @@ export default function AiTutorPage() {
   }
 
   return (
-    <div className="studio-page tutor-page">
-      <PageHeading
-        eyebrow="FOLLOW YOUR CURIOSITY"
-        title="AI tutor"
-        description="Understand a new concept, work through a question, or explore an idea in depth."
-        icon={BookOpen}
-      />
-
-      <div className="tutor-workspace">
-        <div className="tutor-main">
-          <Card className="question-composer">
-            <form onSubmit={handleSubmit}>
-              <div className="composer-heading">
-                <Label htmlFor="tutor-question">
-                  What would you like to understand?
-                </Label>
-                <MessageCircle size={17} />
+    <div
+      className={`tutor-workspace conversation-workspace ${submittedQuestion ? "has-conversation" : "is-empty"}`}
+    >
+      <div className="session-toolbar">
+        <span>
+          <GraduationCap size={16} />
+          Learning session
+        </span>
+        <span>One question at a time</span>
+      </div>
+      <div
+        className="tutor-transcript"
+        ref={transcriptRef}
+        onScroll={(event) => {
+          const el = event.currentTarget;
+          followRef.current =
+            el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+        }}
+      >
+        {submittedQuestion ? (
+          <section className="tutor-explanation" aria-label="Tutor response">
+            <div className="question-echo">
+              <span>You</span>
+              <p>{submittedQuestion}</p>
+            </div>
+            <article className="response-card">
+              <header className="response-card-header">
+                <span className="response-avatar">
+                  <GraduationCap size={18} />
+                </span>
+                <div>
+                  <h2>Your tutor</h2>
+                  <ModelBadge>{answerModel}</ModelBadge>
+                </div>
+                {answer && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyAnswer}
+                    aria-label={copied ? "Answer copied" : "Copy answer"}
+                  >
+                    {copied ? <Check /> : <Copy />}
+                    {copied ? "Copied" : "Copy"}
+                  </Button>
+                )}
+              </header>
+              <div
+                className="response-card-body"
+                aria-live="polite"
+                aria-busy={isStreaming}
+              >
+                {answer ? (
+                  <Markdown>{answer}</Markdown>
+                ) : isStreaming ? (
+                  <Thinking text="Finding a clear way to explain it…" />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {wasStopped
+                      ? "You stopped this response. Ask again whenever you're ready."
+                      : "No answer arrived. You can try your question again."}
+                  </p>
+                )}
               </div>
-              <Textarea
-                ref={inputRef}
-                id="tutor-question"
-                className="question-textarea"
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder="Ask a question, unpack an idea, or explore something new…"
-                rows={4}
-                required
+              {copyError && (
+                <p className="copy-status" role="status">
+                  {copyError}
+                </p>
+              )}
+              <footer className="response-card-footer">
+                <ResponseStatus active={isStreaming}>
+                  {isStreaming
+                    ? "Answer is streaming"
+                    : wasStopped
+                      ? "Response stopped"
+                      : error
+                        ? "Response interrupted"
+                        : "Answer complete"}
+                </ResponseStatus>
+              </footer>
+            </article>
+          </section>
+        ) : (
+          <div className="conversation-intro">
+            <span className="intro-icon">
+              <BookOpen size={23} strokeWidth={1.5} />
+            </span>
+            <span className="intro-caption">A SPACE TO UNDERSTAND</span>
+            <h2>Make room for a new idea.</h2>
+            <p>Work through a question. Find the explanation that clicks.</p>
+          </div>
+        )}
+      </div>
+      <div className="tutor-compose-area">
+        <ErrorNotice title="Your answer couldn't finish">{error}</ErrorNotice>
+        <Card className="question-composer">
+          <form onSubmit={handleSubmit}>
+            <Label htmlFor="tutor-question" className="sr-only">
+              What would you like to understand?
+            </Label>
+            <Textarea
+              ref={inputRef}
+              id="tutor-question"
+              className="question-textarea"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder="What would you like to understand?"
+              rows={3}
+              required
+              disabled={isStreaming}
+              aria-describedby="question-hint"
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  (event.ctrlKey || event.metaKey) &&
+                  !event.nativeEvent.isComposing
+                ) {
+                  event.preventDefault();
+                  event.currentTarget.form.requestSubmit();
+                }
+              }}
+            />
+            <div className="composer-controls">
+              <ModelSelect
+                id="tutor-model"
+                label="YOUR MODEL"
+                value={model}
+                onValueChange={setModel}
                 disabled={isStreaming}
-                aria-describedby="question-hint"
               />
-              <div className="composer-controls">
-                <ModelSelect
-                  id="tutor-model"
-                  label="YOUR MODEL"
-                  value={model}
-                  onValueChange={setModel}
-                  disabled={isStreaming}
-                />
-                <div className="composer-action-group">
-                  {isStreaming ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={stopResponse}
-                    >
-                      <Square className="size-3" />
-                      Stop response
-                    </Button>
-                  ) : null}
+              <div className="composer-action-group">
+                {isStreaming ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={stopResponse}
+                  >
+                    <Square className="size-3" />
+                    Stop response
+                  </Button>
+                ) : (
                   <Button
                     className="primary-action"
                     type="submit"
-                    disabled={isStreaming || !question.trim()}
+                    disabled={!question.trim()}
                   >
-                    {isStreaming ? (
-                      <>
-                        <Loader2 className="animate-spin" />
-                        Thinking…
-                      </>
-                    ) : (
-                      <>
-                        Help me understand
-                        <ArrowRight />
-                      </>
-                    )}
+                    <span>Help me understand</span>
+                    <ArrowUp />
                   </Button>
-                </div>
-              </div>
-            </form>
-          </Card>
-          <p className="field-hint -mt-2" id="question-hint">
-            A little context helps. Tell your tutor what you already know.
-          </p>
-          <ErrorNotice title="Your answer couldn't finish">{error}</ErrorNotice>
-          {submittedQuestion ? (
-            <section aria-label="Tutor response">
-              <div className="question-echo">
-                <span>Y</span>
-                <div>
-                  <strong>YOUR QUESTION</strong>
-                  <p>{submittedQuestion}</p>
-                </div>
-              </div>
-              <Card className="response-card">
-                <header className="response-card-header">
-                  <span className="response-avatar">
-                    <GraduationCap size={18} />
-                  </span>
-                  <div>
-                    <h2>Your tutor</h2>
-                    <ModelBadge>{answerModel}</ModelBadge>
-                  </div>
-                  {answer && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={copyAnswer}
-                      aria-label={copied ? "Answer copied" : "Copy answer"}
-                    >
-                      {copied ? <Check /> : <Copy />}
-                      {copied ? "Copied" : "Copy"}
-                    </Button>
-                  )}
-                </header>
-                <div
-                  className="response-card-body"
-                  aria-live="polite"
-                  aria-busy={isStreaming}
-                >
-                  {answer ? (
-                    <Markdown>{answer}</Markdown>
-                  ) : isStreaming ? (
-                    <Thinking text="Finding a clear way to explain it…" />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {wasStopped
-                        ? "You stopped this response. Ask again whenever you're ready."
-                        : "No answer arrived. You can try your question again."}
-                    </p>
-                  )}
-                </div>
-                {copyError && (
-                  <p className="copy-status" role="status">
-                    {copyError}
-                  </p>
                 )}
-                <footer className="response-card-footer">
-                  <ResponseStatus active={isStreaming}>
-                    {isStreaming
-                      ? "Answer is streaming"
-                      : wasStopped
-                        ? "Response stopped"
-                        : error
-                          ? "Response interrupted"
-                          : "Answer complete"}
-                  </ResponseStatus>
-                  <span>Review important details for accuracy.</span>
-                </footer>
-              </Card>
-            </section>
-          ) : (
-            <section className="starter-section">
-              <div className="starter-section-title">
-                <h2>A few places to start</h2>
-                <span>Follow what interests you</span>
               </div>
-              <div className="starter-grid">
-                {[
-                  {
-                    icon: FlaskConical,
-                    title: "Everyday science",
-                    description: "Why does the sky look blue?",
-                    prompt: "Why does the sky look blue?",
-                  },
-                  {
-                    icon: ListChecks,
-                    title: "Make the math click",
-                    description: "Fractions, without the confusion.",
-                    prompt: "Explain fractions with a simple example",
-                  },
-                  {
-                    icon: Waves,
-                    title: "Understand our world",
-                    description: "Weather vs. climate. What's the difference?",
-                    prompt:
-                      "What is the difference between weather and climate?",
-                  },
-                ].map(({ prompt, ...props }) => (
-                  <PromptCard
-                    key={prompt}
-                    {...props}
-                    onClick={() => {
-                      setQuestion(prompt);
-                      inputRef.current?.focus();
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="learning-empty">
-                <span>
-                  <BookOpen size={30} strokeWidth={1.3} />
-                </span>
-                <div>
-                  <h3>Your explanation will appear here.</h3>
-                  <p>
-                    Send a question and watch the explanation come together.
-                  </p>
-                </div>
-              </div>
-            </section>
-          )}
+            </div>
+          </form>
+        </Card>
+        {!submittedQuestion && (
+          <div className="starter-list">
+            <span>Try a question</span>
+            {STARTERS.map(({ icon: Icon, title, prompt }) => (
+              <Button
+                key={title}
+                variant="ghost"
+                onClick={() => {
+                  setQuestion(prompt);
+                  inputRef.current?.focus();
+                }}
+              >
+                <Icon size={15} />
+                <span>{title}</span>
+                <ArrowUpRight size={13} />
+              </Button>
+            ))}
+          </div>
+        )}
+        <div className="composer-note" id="question-hint">
+          <span>Add context for a more useful explanation.</span>
+          <span>
+            <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to send
+          </span>
         </div>
-        <aside className="study-sidebar" aria-label="Tips for learning">
-          <span className="small-section-label">A LITTLE GUIDANCE</span>
-          <div className="study-tip">
-            <Lightbulb size={20} />
-            <h3>Start with the confusing part.</h3>
-            <p>
-              You don&apos;t need the perfect question. A rough idea is a good
-              place to begin.
-            </p>
-          </div>
-          <div className="study-tip">
-            <ListChecks size={20} />
-            <h3>Ask for an example.</h3>
-            <p>
-              Make an abstract idea feel familiar with a real situation or a
-              simple analogy.
-            </p>
-          </div>
-          <div className="study-tip">
-            <Compass size={20} />
-            <h3>Go at your own pace.</h3>
-            <p>
-              Ask a new question to explore another angle. Every explanation is
-              a fresh start.
-            </p>
-          </div>
-        </aside>
       </div>
-      <ToolFooter>
-        Explanations are generated by your selected model.
-      </ToolFooter>
     </div>
   );
 }

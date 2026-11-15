@@ -207,10 +207,12 @@ test("tutor stop and failed response do not leave a permanent thinking state", a
   page,
 }) => {
   let release;
+  let requestCount = 0;
   const waiting = new Promise((resolve) => {
     release = resolve;
   });
   await page.route("**/teach-stream", async (route) => {
+    requestCount += 1;
     await waiting;
     await route
       .fulfill({ contentType: "text/event-stream", body: "data: [DONE]\n\n" })
@@ -224,6 +226,7 @@ test("tutor stop and failed response do not leave a permanent thinking state", a
   await page.getByRole("button", { name: "Stop response" }).click();
   await expect(page.getByRole("status")).toContainText("Response stopped");
   await expect(page.locator(".thinking-state")).toHaveCount(0);
+  expect(requestCount).toBe(1);
   release();
 });
 
@@ -412,5 +415,46 @@ test("all tool entry screens pass automated accessibility checks in both themes"
         `${theme} ${route}: ${JSON.stringify(results.violations.map(({ id, nodes }) => ({ id, nodes: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })) })))}`,
       ).toEqual([]);
     }
+  }
+});
+
+test("document presentation controls and empty conversation geometry are usable", async ({
+  page,
+}) => {
+  await page.route("**/generate-brochure", (route) =>
+    route.fulfill({ json: { data: brochure } }),
+  );
+  await page.goto("/sales-brochure-generator");
+  await expect(page.getByRole("button", { name: "Download" })).toBeDisabled();
+  await page.getByRole("button", { name: "Add a website" }).click();
+  await expect(page.getByLabel("Website URL")).toBeFocused();
+  await page.getByRole("button", { name: "Minimal", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Minimal", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel("Website URL").fill("https://example.com");
+  await page.getByRole("button", { name: "Generate brochure" }).click();
+  await expect(page.locator(".brochure-document.minimal")).toContainText(
+    brochure.heading,
+  );
+  await page.getByRole("button", { name: "Editorial", exact: true }).click();
+  await expect(page.locator(".brochure-document.editorial")).toContainText(
+    brochure.heading,
+  );
+  await page.keyboard.press("Control+b");
+  await page.getByRole("button", { name: "Toggle Sidebar" }).click();
+  await expect(
+    page.getByRole("link", { name: "AI tutor", exact: true }),
+  ).toBeVisible();
+  for (const route of ["ai-tutor", "ai-assistant", "multi-model-chat"]) {
+    await page.goto(`/${route}`);
+    const intro = await page
+      .locator(".conversation-intro, .discussion-intro")
+      .boundingBox();
+    const composer = await page
+      .locator(".question-composer, .genie-composer")
+      .boundingBox();
+    expect(intro.y + intro.height).toBeLessThanOrEqual(composer.y + 1);
+    expect(composer.y + composer.height).toBeLessThan(1000);
   }
 });

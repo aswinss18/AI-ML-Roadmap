@@ -28,7 +28,6 @@ import {
   Markdown,
   ModelBadge,
   ModelSelect,
-  PromptCard,
   Thinking,
 } from "@/components/studio-ui";
 import "./genie.css";
@@ -269,16 +268,11 @@ export default function GeniePage() {
 
   return (
     <div className="genie-page">
-      <div className="genie-toolbar">
-        <div className="genie-identity">
-          <span className="genie-avatar">
-            <BrandMark />
-          </span>
-          <div>
-            <h1>Genie</h1>
-            <span>AI assistant</span>
-          </div>
-        </div>
+      <div className="session-toolbar genie-toolbar">
+        <span>
+          <AudioLines size={16} />
+          Conversation
+        </span>{" "}
         <div className="genie-model-tools">
           <ModelSelect
             id="genie-model"
@@ -305,7 +299,10 @@ export default function GeniePage() {
           </Tooltip>
         </div>
       </div>
-      <section className="genie-workspace" aria-label="Genie assistant">
+      <section
+        className={`genie-workspace ${messages.length ? "has-conversation" : "is-empty"}`}
+        aria-label="Genie assistant"
+      >
         {modelError && (
           <div className="genie-model-notice">
             <ErrorNotice
@@ -336,30 +333,15 @@ export default function GeniePage() {
           }}
         >
           {!messages.length ? (
-            <div className="genie-welcome">
-              <div className="genie-welcome-mark" aria-hidden="true">
+            <div className="conversation-intro genie-welcome">
+              <span className="intro-icon">
                 <BrandMark />
-              </div>
+              </span>
+              <span className="intro-caption">YOUR THINKING SPACE</span>
               <h2>What are you working on?</h2>
               <p>
-                A fresh draft, a difficult question, or your next idea.
-                <br />
-                Start a conversation with your selected model.
+                Start with a question, a rough draft, or a half-formed idea.
               </p>
-              <div className="genie-suggestions">
-                {SUGGESTIONS.map((item) => (
-                  <PromptCard
-                    key={item.title}
-                    icon={item.icon}
-                    title={item.title}
-                    description={item.label}
-                    onClick={() => {
-                      setDraft(item.prompt);
-                      inputRef.current?.focus();
-                    }}
-                  />
-                ))}
-              </div>
             </div>
           ) : (
             <div
@@ -448,13 +430,16 @@ export default function GeniePage() {
               <div className="genie-composer-footer">
                 <span>
                   <AudioLines size={14} />
-                  Shift + Enter for a new line
+                  Your model, your conversation
                 </span>
                 {streaming ? (
                   <Button
                     type="button"
                     className="genie-send"
-                    onClick={() => requestRef.current?.abort()}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      requestRef.current?.abort();
+                    }}
                   >
                     <Square className="size-3" />
                     Stop response
@@ -472,6 +457,24 @@ export default function GeniePage() {
               </div>
             </form>
           </Card>
+          {!messages.length && (
+            <div className="starter-list genie-starters">
+              <span>Start with</span>
+              {SUGGESTIONS.map((item) => (
+                <Button
+                  key={item.title}
+                  variant="ghost"
+                  onClick={() => {
+                    setDraft(item.prompt);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  <item.icon size={15} />
+                  <span>{item.title}</span>
+                </Button>
+              ))}
+            </div>
+          )}
           <div className="genie-bottom-note">
             <span id="genie-input-hint">
               <kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for a new line

@@ -1,10 +1,9 @@
 "use client";
-import { AlertCircle, ArrowUpRight, Check, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getModelIdentity, ModelIcon } from "@/components/model-identity";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
@@ -95,16 +94,6 @@ export function ModelSelect({
     </div>
   );
 }
-export function PageHeading({ title, description }) {
-  return (
-    <section className="page-heading">
-      <div className="page-heading-copy">
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
-    </section>
-  );
-}
 export function ErrorNotice({
   children,
   title = "Something needs attention",
@@ -170,48 +159,6 @@ export function Thinking({ text = "Putting a few thoughts together…" }) {
       <Skeleton className="h-3 w-[92%]" />
       <Skeleton className="h-3 w-[78%]" />
       <Skeleton className="h-3 w-[58%]" />
-    </div>
-  );
-}
-export function ToolFooter({ children }) {
-  return (
-    <footer className="tool-footer">
-      <span>
-        <span className="small-dot" />
-        AI Studio
-      </span>
-      <span>{children || "Created with your selected model."}</span>
-    </footer>
-  );
-}
-export function PromptCard({
-  icon: Icon,
-  title,
-  description,
-  onClick,
-  disabled,
-}) {
-  return (
-    <Button
-      variant="outline"
-      className="prompt-card"
-      onClick={onClick}
-      disabled={disabled}
-    >
-      <span className="prompt-icon">
-        <Icon size={18} strokeWidth={1.6} />
-      </span>
-      <strong>{title}</strong>
-      <span>{description}</span>
-      <ArrowUpRight className="prompt-arrow" size={15} />
-    </Button>
-  );
-}
-export function StepLabel({ number, children, complete }) {
-  return (
-    <div className="step-label">
-      <span>{complete ? <Check size={12} /> : number}</span>
-      {children}
     </div>
   );
 }

@@ -8,34 +8,17 @@ import {
   Copy,
   FileText,
   Globe2,
-  Layers2,
   Loader2,
   ScanText,
-  WandSparkles,
+  AlignLeft,
+  LayoutTemplate,
 } from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ErrorNotice,
-  ModelSelect,
-  PageHeading,
-  ResponseStatus,
-  StepLabel,
-  Thinking,
-  ToolFooter,
-} from "@/components/studio-ui";
+import { ErrorNotice, ModelSelect, Thinking } from "@/components/studio-ui";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
@@ -61,6 +44,9 @@ export default function SalesBrochureGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
   const requestRef = useRef(null);
+  const urlRef = useRef(null);
+  const [layout, setLayout] = useState("editorial");
+  const [view, setView] = useState("preview");
   useEffect(() => () => requestRef.current?.abort(), []);
 
   async function handleSubmit(event) {
@@ -70,6 +56,7 @@ export default function SalesBrochureGenerator() {
     requestRef.current = controller;
     setError("");
     setBrochure(null);
+    setView("preview");
     setCopyStatus("");
     setIsLoading(true);
     setSource(url.trim());
@@ -123,287 +110,276 @@ export default function SalesBrochureGenerator() {
     setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
   }
   return (
-    <div className="studio-page brochure-page">
-      <PageHeading
-        eyebrow="CREATE SOMETHING GREAT"
-        title="Sales brochure"
-        description="Turn your website into a company overview. Review it, make it yours, and share it."
-        icon={FileText}
-      />
-
-      <div className="brochure-workspace">
-        <div className="brochure-config">
-          <Card className="config-card">
-            <CardHeader>
-              <StepLabel number="01">Configuration</StepLabel>
-              <CardTitle>Start with a website</CardTitle>
-              <CardDescription>
-                We’ll use the content to create your brochure.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="studio-form">
-                <div className="field-group">
-                  <Label htmlFor="website-url">Website URL</Label>
-                  <div className="input-with-icon">
-                    <Globe2 size={16} />
-                    <Input
-                      id="website-url"
-                      type="url"
-                      placeholder="https://yourcompany.com"
-                      value={url}
-                      onChange={(event) => setUrl(event.target.value)}
-                      required
-                      disabled={isLoading}
-                      aria-describedby="url-hint"
-                    />
-                  </div>
-                  <p className="field-hint" id="url-hint">
-                    Use a public company or product website.
-                  </p>
-                </div>
-                <ModelSelect
-                  id="brochure-model"
-                  value={model}
-                  onValueChange={setModel}
+    <div className="document-workbench">
+      <aside className="workbench-inspector" aria-label="Brochure settings">
+        <div className="inspector-heading">
+          <FileText size={16} />
+          <h2>Document setup</h2>
+        </div>
+        <form onSubmit={handleSubmit} className="inspector-form">
+          <div className="inspector-section">
+            <div className="section-caption">
+              <span>01</span>
+              <h3>Source</h3>
+            </div>
+            <div className="field-group">
+              <Label htmlFor="website-url">Website URL</Label>
+              <div className="input-with-icon">
+                <Globe2 size={15} />
+                <Input
+                  ref={urlRef}
+                  id="website-url"
+                  type="url"
+                  placeholder="https://company.com"
+                  value={url}
+                  onChange={(event) => setUrl(event.target.value)}
+                  required
                   disabled={isLoading}
+                  aria-describedby="url-hint"
                 />
-                <Separator />
-                <div className="output-detail">
-                  <span className="output-detail-icon">
-                    <Layers2 size={18} />
-                  </span>
-                  <div>
-                    <strong>Included in your brochure</strong>
-                    <p>
-                      Headline, introduction, key benefits, and a closing
-                      statement.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="primary-action w-full"
-                  disabled={isLoading || !url.trim()}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="animate-spin" />
-                      Creating your brochure…
-                    </>
-                  ) : (
-                    <>
-                      <WandSparkles />
-                      Generate brochure
-                      <ArrowRight className="ml-auto" />
-                    </>
-                  )}
-                </Button>
-                <p className="form-footnote">
-                  Generated content can be reviewed before sharing.
-                </p>
-                <ErrorNotice title="Couldn't create your brochure">
-                  {error}
-                </ErrorNotice>
-              </form>
-            </CardContent>
-          </Card>
-          <div className="workflow-guide">
-            <span className="small-section-label">HOW IT WORKS</span>
-            {[
-              {
-                icon: Globe2,
-                title: "Add your source",
-                text: "Start with the website behind the business.",
-              },
-              {
-                icon: ScanText,
-                title: "Extract the essentials",
-                text: "Your model identifies the key details.",
-              },
-              {
-                icon: FileText,
-                title: "Review and export",
-                text: "Copy the text or download as Markdown.",
-              },
-            ].map(({ icon: Icon, title, text }, index) => (
-              <div className="workflow-step" key={title}>
-                <span>
-                  <Icon size={16} />
-                </span>
-                <div>
-                  <strong>{title}</strong>
-                  <p>{text}</p>
-                </div>
-                <small>0{index + 1}</small>
               </div>
-            ))}
+              <p className="field-hint" id="url-hint">
+                A public company or product website.
+              </p>
+            </div>
+            <ModelSelect
+              id="brochure-model"
+              value={model}
+              onValueChange={setModel}
+              disabled={isLoading}
+            />
+          </div>
+          <div className="inspector-section">
+            <div className="section-caption">
+              <span>02</span>
+              <h3>Presentation</h3>
+            </div>
+            <Label id="layout-label">Document layout</Label>
+            <div
+              className="layout-options"
+              role="group"
+              aria-labelledby="layout-label"
+            >
+              {["editorial", "minimal"].map((item) => (
+                <Button
+                  key={item}
+                  type="button"
+                  variant="outline"
+                  className="layout-option"
+                  aria-pressed={layout === item}
+                  onClick={() => setLayout(item)}
+                >
+                  <span
+                    className={`layout-thumbnail ${item}`}
+                    aria-hidden="true"
+                  >
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span>{item === "editorial" ? "Editorial" : "Minimal"}</span>
+                  {layout === item && <Check size={12} />}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="inspector-section document-outline">
+            <div className="section-caption">
+              <span>03</span>
+              <h3>Document outline</h3>
+            </div>
+            {["Company introduction", "Key benefits", "Closing statement"].map(
+              (item, index) => (
+                <div key={item}>
+                  <span className="outline-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span>{item}</span>
+                  {brochure ? (
+                    <Check size={13} />
+                  ) : (
+                    <span className="outline-dash">—</span>
+                  )}
+                </div>
+              ),
+            )}
+          </div>
+          <div className="inspector-submit">
+            <ErrorNotice title="Couldn't create your brochure">
+              {error}
+            </ErrorNotice>
+            <Button
+              type="submit"
+              className="primary-action w-full"
+              disabled={isLoading || !url.trim()}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Creating brochure…
+                </>
+              ) : (
+                <>
+                  Generate brochure
+                  <ArrowRight className="ml-auto" />
+                </>
+              )}
+            </Button>
+            <p className="field-hint">
+              Create a draft, then review and export.
+            </p>
+          </div>
+        </form>
+      </aside>
+      <Tabs value={view} onValueChange={setView} className="document-editor">
+        <div className="editor-toolbar">
+          <TabsList className="toolbar-tabs">
+            <TabsTrigger value="preview">
+              <LayoutTemplate size={14} />
+              Preview
+            </TabsTrigger>
+            <TabsTrigger value="text" disabled={!brochure}>
+              <AlignLeft size={14} />
+              Plain text
+            </TabsTrigger>
+          </TabsList>
+          <div className="toolbar-actions">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copyBrochure}
+              disabled={!brochure}
+              aria-label="Copy brochure"
+            >
+              <Copy />
+              <span>Copy</span>
+            </Button>
+            <Separator orientation="vertical" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadBrochure}
+              disabled={!brochure}
+            >
+              <ArrowDownToLine />
+              <span>Download</span>
+            </Button>
           </div>
         </div>
-        <Card className="preview-panel">
-          <div className="preview-toolbar">
+        <TabsContent value="preview" className="document-stage">
+          <div className="canvas-caption">
+            <span>{brochure ? "Company brochure" : "Untitled brochure"}</span>
             <span>
-              <span className={`small-dot ${brochure ? "success-dot" : ""}`} />
-              {brochure ? "Your brochure" : "Document preview"}
+              {isLoading ? "Generating" : brochure ? "Draft" : "Not generated"}
             </span>
-            <Badge variant="outline">
-              {isLoading
-                ? "IN PROGRESS"
-                : brochure
-                  ? "READY TO SHARE"
-                  : "PREVIEW"}
-            </Badge>
           </div>
           {isLoading ? (
-            <div className="preview-loading">
-              <div className="preview-loading-icon">
-                <ScanText size={30} />
-              </div>
-              <h3>Finding the story.</h3>
-              <p>Reading the website and bringing the details together.</p>
-              <Thinking text="Your brochure is taking shape…" />
-              <ResponseStatus active>
-                This can take a moment, depending on the model.
-              </ResponseStatus>
+            <div className="document-paper document-loading">
+              <ScanText size={24} />
+              <h2>Composing your brochure</h2>
+              <p>Reading your website and extracting the essentials.</p>
+              <Thinking text="Working on your first draft…" />
             </div>
           ) : brochure ? (
-            <Tabs defaultValue="preview" className="brochure-result">
-              <div className="result-actions">
-                <TabsList>
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                  <TabsTrigger value="text">Plain text</TabsTrigger>
-                </TabsList>
-                <div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Copy brochure"
-                    onClick={copyBrochure}
-                  >
-                    {copyStatus === "Copied to clipboard" ? (
-                      <Check />
-                    ) : (
-                      <Copy />
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={downloadBrochure}
-                  >
-                    <ArrowDownToLine />
-                    Download
-                  </Button>
-                </div>
+            <article
+              className={`document-paper brochure-document ${layout}`}
+              style={{
+                "--document-primary": getSafeColor(
+                  brochure.colors?.primary_color,
+                  "#3458d5",
+                ),
+                "--document-secondary": getSafeColor(
+                  brochure.colors?.secondary_color,
+                  "#d8e1f4",
+                ),
+                "--document-tertiary": getSafeColor(
+                  brochure.colors?.tertiary_color,
+                  "#3458d5",
+                ),
+              }}
+            >
+              <div className="document-top">
+                <span>COMPANY OVERVIEW</span>
+                <Globe2 size={17} />
               </div>
-              <TabsContent value="preview">
-                <article
-                  className="generated-document"
-                  style={{
-                    "--document-accent": getSafeColor(
-                      brochure.colors?.primary_color,
-                    ),
-                    "--document-secondary": getSafeColor(
-                      brochure.colors?.secondary_color,
-                      "#d8d0ed",
-                    ),
-                    "--document-tertiary": getSafeColor(
-                      brochure.colors?.tertiary_color,
-                      "#9280bf",
-                    ),
-                  }}
-                >
-                  <div className="document-top">
-                    <span>THE BUSINESS EDIT</span>
-                    <Globe2 size={18} />
-                  </div>
-                  <span className="document-eyebrow">A CLOSER LOOK</span>
-                  <h2>{brochure.heading}</h2>
-                  <p className="document-description">{brochure.description}</p>
-                  <Separator />
-                  <h3>What sets us apart</h3>
-                  <ul>
-                    {brochure.bullet_points.map((point, index) => (
-                      <li key={index}>
-                        <Check size={15} />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <blockquote>{brochure.summary}</blockquote>
-                  <div className="document-bottom">
-                    <span>{source}</span>
-                    <span>AI STUDIO</span>
-                  </div>
-                </article>
-              </TabsContent>
-              <TabsContent value="text">
-                <pre className="brochure-plain-text">
-                  {toMarkdown(brochure)}
-                </pre>
-              </TabsContent>
-              <p className="copy-status" role="status">
-                {copyStatus ||
-                  "Your first draft is ready. Review the details before sharing."}
-              </p>
-            </Tabs>
+              <div className="document-heading">
+                <span className="document-eyebrow">INTRODUCING</span>
+                <h2>{brochure.heading}</h2>
+                <p className="document-description">{brochure.description}</p>
+              </div>
+              <Separator />
+              <div className="document-benefits">
+                <h3>What sets us apart</h3>
+                <ul>
+                  {brochure.bullet_points.map((point, index) => (
+                    <li key={index}>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <p>{point}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <blockquote>{brochure.summary}</blockquote>
+              <div className="document-bottom">
+                <span>{source}</span>
+                <span>01</span>
+              </div>
+            </article>
           ) : (
-            <div className="preview-empty">
-              <div className="document-stack" aria-hidden="true">
-                <div className="document-shadow-sheet" />
-                <div className="document-sample">
-                  <div className="sample-header">
-                    <span className="sample-logo">
-                      <BrandMark />
-                    </span>
-                    <span>COMPANY OVERVIEW</span>
-                  </div>
-                  <div className="sample-kicker">YOUR NEXT INTRODUCTION</div>
-                  <div className="sample-title">
-                    Your business.
-                    <br />
-                    Clearly told.
-                  </div>
-                  <div className="sample-rule" />
-                  <div className="sample-lines">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div className="sample-benefits">
-                    <span>
-                      <Check size={10} />A clear point of view
-                    </span>
-                    <span>
-                      <Check size={10} />
-                      The details that matter
-                    </span>
-                    <span>
-                      <Check size={10} />A lasting impression
-                    </span>
-                  </div>
-                  <div className="sample-footer">
-                    <span>AI STUDIO</span>
-                    <span>01</span>
-                  </div>
-                </div>
+            <div className={`document-paper blank-document ${layout}`}>
+              <div className="document-top">
+                <span>COMPANY OVERVIEW</span>
+                <span>01</span>
               </div>
-              <h3>Your brochure, ready for its first draft.</h3>
-              <p>Add a website to generate a tailored company overview.</p>
+              <div className="blank-document-center">
+                <span className="blank-document-icon">
+                  <FileText size={24} strokeWidth={1.3} />
+                </span>
+                <h2>
+                  A blank page.
+                  <br />A clear starting point.
+                </h2>
+                <p>
+                  Add your website to turn your business
+                  <br className="desktop-break" /> into a considered company
+                  overview.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => urlRef.current?.focus()}
+                >
+                  Add a website
+                  <ArrowRight size={14} />
+                </Button>
+              </div>
+              <div className="blank-document-footer">
+                <span>INTRODUCTION</span>
+                <span>BENEFITS</span>
+                <span>SUMMARY</span>
+              </div>
             </div>
           )}
-          <div className="preview-bottom">
-            <FileText size={13} />
-            <span>
-              {brochure
-                ? "Generated from your website"
-                : "Example layout · Your content will appear here"}
-            </span>
-            <span className="ml-auto">01 / 01</span>
-          </div>
-        </Card>
-      </div>
-      <ToolFooter />
+        </TabsContent>
+        <TabsContent value="text" className="document-stage">
+          <pre className="brochure-plain-text">
+            {brochure ? toMarkdown(brochure) : ""}
+          </pre>
+        </TabsContent>
+        <div className="editor-statusbar">
+          <span className="copy-status" role="status">
+            {copyStatus ||
+              (isLoading
+                ? "Generating your document…"
+                : brochure
+                  ? "Draft ready · Review before sharing"
+                  : "Add a source to get started")}
+          </span>
+          <span>
+            Markdown export<span className="status-divider">/</span>1 page
+          </span>
+        </div>
+      </Tabs>
     </div>
   );
 }

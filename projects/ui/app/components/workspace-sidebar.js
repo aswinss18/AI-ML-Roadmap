@@ -9,7 +9,6 @@ import {
   AudioLines,
   BookOpen,
   Check,
-  ChevronDown,
   CircleHelp,
   FileText,
   Layers2,
@@ -25,7 +24,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -55,7 +53,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const WORKSPACE_LINKS = [
   {
@@ -89,11 +91,15 @@ function ThemeMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="appearance-button">
+        <Button
+          variant="ghost"
+          className="appearance-button"
+          aria-label="Appearance"
+          title="Appearance"
+        >
           <Sun className="dark:hidden" />
           <Moon className="hidden dark:block" />
           <span>Appearance</span>
-          <ChevronDown className="ml-auto size-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-52">
@@ -141,75 +147,74 @@ export default function WorkspaceSidebar() {
             <span className="studio-logo">
               <BrandMark />
             </span>
-            <span className="studio-wordmark">
-              AI Studio<span className="studio-wordmark-dot">.</span>
-            </span>
+            <span className="rail-mobile-label">AI Studio</span>
           </Link>
-          <Button
-            ref={searchRef}
-            variant="outline"
-            className="studio-search"
-            onClick={() => setSearchOpen(true)}
-          >
-            <Search />
-            <span>Find a tool…</span>
-            <kbd>⌘ K</kbd>
-          </Button>
         </SidebarHeader>
         <SidebarContent>
           <nav aria-label="Main navigation">
-            <SidebarGroup className="px-3">
-              <SidebarGroupLabel className="nav-section-label">
-                WORKSPACE
-              </SidebarGroupLabel>
-              <SidebarMenu className="gap-1.5">
-                {WORKSPACE_LINKS.map(({ href, label, icon: Icon }) => (
+            <SidebarGroup className="rail-group">
+              <SidebarMenu>
+                {WORKSPACE_LINKS.map(({ href, label, icon: Icon }, index) => (
                   <SidebarMenuItem key={href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === href}
-                      className="studio-nav-link"
-                    >
-                      <Link
-                        href={href}
-                        aria-current={pathname === href ? "page" : undefined}
-                        onClick={() => setOpenMobile(false)}
-                      >
-                        <Icon />
-                        <span>{label}</span>
-                        {pathname === href && (
-                          <span className="nav-active-dot" />
-                        )}
-                      </Link>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === href}
+                          className="studio-nav-link"
+                        >
+                          <Link
+                            href={href}
+                            aria-label={label}
+                            aria-current={
+                              pathname === href ? "page" : undefined
+                            }
+                            onClick={() => setOpenMobile(false)}
+                          >
+                            <Icon />
+                            <span className="rail-short-label">
+                              {
+                                ["Assistant", "Create", "Learn", "Discuss"][
+                                  index
+                                ]
+                              }
+                            </span>
+                            <span className="rail-mobile-label">{label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">{label}</TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
             </SidebarGroup>
           </nav>
         </SidebarContent>
-        <SidebarFooter className="p-3 gap-1">
+        <SidebarFooter className="rail-footer">
+          <Button
+            ref={searchRef}
+            variant="ghost"
+            className="studio-search"
+            aria-label="Find a tool"
+            title="Find a tool (Ctrl K)"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search />
+            <span className="rail-mobile-label">Find a tool</span>
+          </Button>
           <ThemeMenu />
           <Button
             ref={helpRef}
             variant="ghost"
             className="sidebar-help"
+            aria-label="Getting started"
+            title="Getting started"
             onClick={() => setHelpOpen(true)}
           >
             <CircleHelp />
-            <span>Getting started</span>
-            <ArrowUpRight className="ml-auto size-3.5" />
+            <span className="rail-mobile-label">Getting started</span>
           </Button>
-          <Separator className="my-3" />
-          <div className="workspace-identity">
-            <span className="workspace-avatar">
-              <BrandMark />
-            </span>
-            <div>
-              <strong>Personal workspace</strong>
-              <span>Local workspace</span>
-            </div>
-          </div>
         </SidebarFooter>
       </Sidebar>
       <CommandDialog
@@ -302,20 +307,21 @@ export default function WorkspaceSidebar() {
 
 export function WorkspaceHeader() {
   const pathname = usePathname();
+  const { open } = useSidebar();
   const tool = WORKSPACE_LINKS.find((item) => item.href === pathname);
   return (
     <header className="workspace-header">
-      <div className="flex min-w-0 items-center gap-3">
-        <SidebarTrigger className="size-9" />
-        <Separator orientation="vertical" className="!h-4" />
-        <span className="breadcrumb-workspace">Workspace</span>
-        <span className="text-muted-foreground/50">/</span>
-        <span className="header-current">{tool?.label || "AI Studio"}</span>
+      <div className="workspace-location">
+        <SidebarTrigger
+          className={`mobile-nav-trigger ${!open ? "rail-is-hidden" : ""}`}
+        />
+        <span className="header-wordmark">
+          AI Studio<span>.</span>
+        </span>
+        <span className="header-slash">/</span>
+        <h1>{tool?.label || "Workspace"}</h1>
       </div>
-      <span className="header-caption">
-        AI Studio <span className="header-caption-divider">/</span> Personal
-        workspace
-      </span>
+      <span className="header-caption">Personal workspace</span>
     </header>
   );
 }

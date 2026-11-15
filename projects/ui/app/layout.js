@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeProvider>
           <TooltipProvider>
-            <SidebarProvider style={{ "--sidebar-width": "16rem" }}>
+            <SidebarProvider style={{ "--sidebar-width": "4.75rem" }}>
               <a href="#main-content" className="skip-link">
                 Skip to content
               </a>

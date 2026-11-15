@@ -15,14 +15,14 @@ Rebuild all four AI Studio tools with shadcn/ui. A cohesive studio shell, clear 
 - AC-5: Every tool has considered empty, working, success, and error states, without fabricated account or usage data.
 
 ## Decision
-Keep Next.js App Router, JavaScript, Tailwind 4, and Geist. Use the official shadcn CLI, Radix primitives, Lucide icons, and next-themes. Design authority comes from the user's request to make a complete premium redesign. The visual direction is a precise creative studio with warm neutral surfaces, graphite dark mode, monochrome controls and warm neutral accents, fine dividers, and strong typographic hierarchy. The user requested a second refinement toward standard professional UI, a custom studio logo, and correct provider marks in model selectors. Token values live in app/globals.css.
+Keep Next.js App Router, JavaScript, Tailwind 4, and Geist. Use the official shadcn CLI, Radix primitives, Lucide icons, and next-themes. Design authority comes from the user's request to redesign the whole application. The final direction is a compact workbench: ink tool rail, white or graphite surfaces, cool gray document canvas, restrained blue controls, and integrated panes. Token values live in app/globals.css.
 
 ## Page composition
-- Shared shell: brand, tool navigation, tool descriptions, appearance control, help dialog, and responsive sidebar. Breadcrumb header and workspace search provide consistent orientation.
-- Brochure: page heading, split configuration and preview workspace, model selector, URL field, generation action, illustrative document empty state, real generated brochure, copy and Markdown download.
-- Tutor: page heading, question composer and model selector, response area, starter questions and learning guidance. Streaming and stop states remain visible.
-- Model conversations: topic setup, two participant cards and model selectors, conversation transcript with clearly separated speakers and lifecycle status.
-- Genie: centered welcome, prompt starters, model toolbar, bottom composer, and readable conversation with user messages aligned right.
+- Shared shell: 76px tool rail with short labels and tooltips; one compact header; search, help, and persistent appearance controls; mobile Sheet navigation. A hidden desktop rail can be restored from the header.
+- Brochure: source/model inspector, functional Editorial/Minimal presentation controls, output outline, document preview or plain text, and copy/Markdown export. The submitted source remains attached to its generated document. Layout is a preview presentation preference; Markdown export contains the content.
+- Tutor: focused question composer with model selection and prompt starters; streamed explanation above the composer; immediate stop feedback and a stable answer-model identity.
+- Model conversations: participant model inspector, central topic composer, prompt starters, actual session state/turn count, and a scrollable alternating transcript. Model settings become a compact strip on mobile.
+- Genie: model toolbar, composer beside the introductory prompt in the empty state, then a scrollable conversation with the composer below. User messages stay right aligned. No unsupported reset or history controls.
 
 ## Value sourcing
 | Value | Source |
@@ -55,9 +55,11 @@ A shared shell and consistent controls reduce the learning cost across the tools
 ## Verification
 Completed on 2026-11-15. No existing scope row matched this UI redesign.
 
-- ESLint passed.
-- Production build passed for all routes.
-- All 13 Playwright browser tests passed against the production build with controlled API responses.
-- Automated WCAG A and AA checks found no violations on all four entry screens in light and dark themes.
-- Desktop and 375px mobile screenshots were inspected, including the model dropdown.
+- ESLint and the production build passed.
+- All 14 Playwright tests passed against the production build with controlled API responses.
+- Automated WCAG A/AA checks found no violations on the four entry screens in light and dark themes.
+- Desktop and 375px mobile screenshots were inspected, including provider selectors.
+- A long tutor response at 1280x720 scrolls while the composer remains visible; a 375x667 assistant viewport has no horizontal overflow and keeps Send visible.
+- Stop behavior includes a regression assertion that cancellation does not submit a second request.
+- Document layout controls, source focus, copy/download, theme persistence, command search, and restoring collapsed navigation were exercised.
 - Live model inference was not part of the controlled browser suite.
