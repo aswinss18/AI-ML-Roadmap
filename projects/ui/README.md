@@ -27,6 +27,29 @@ includes `meditron:latest`, `deepseek-r1:1.5b`, `llama3.2:latest`,
 expected at `http://localhost:8000`. Set `NEXT_PUBLIC_API_BASE_URL` before
 starting Next.js to use a different API base URL.
 
+## Genie assistant
+
+Open `/ai-assistant`, or choose **Genie assistant** in the sidebar. Genie loads
+installed models from `GET /models` and streams replies from `POST /chat-assistant`.
+The page supports suggested prompts, Markdown, copying replies, and stopping a reply.
+
+With Ollama running, start the assistant API from `projects/ai-assistant`:
+
+```bash
+uv run --locked uvicorn main:app --port 8002
+```
+
+Run `npm run dev` from `projects/ui` and visit
+[Genie](http://localhost:3000/ai-assistant). Set
+`NEXT_PUBLIC_GENIE_API_BASE_URL` in `projects/ui/.env.local` to use another API
+address, then restart Next.js. The default is `http://localhost:8002`.
+The API currently permits the frontend origin `http://localhost:3000`.
+
+The existing API keeps one shared conversation in server memory. The visible
+transcript lasts until the page is reloaded; reloading does not reset the API's
+history. Stop cancels receiving the reply, but does not guarantee that model
+generation on the server stops. Independent chats need backend session support.
+
 ## AI tutor
 
 The `/ai-tutor` page sends a question and the selected Ollama model to the

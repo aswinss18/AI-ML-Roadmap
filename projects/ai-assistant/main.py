@@ -52,8 +52,8 @@ def chat_assistant(request: ChatRequest):
         assistant_response = []
         try:
             for chunk in response:
-                if chunk.choices[0].delta.get("content"):
-                    content = chunk.choices[0].delta["content"]
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
                     assistant_response.append(content)
                     yield content
 

@@ -5,6 +5,16 @@ import { usePathname } from "next/navigation";
 
 const WORKSPACE_LINKS = [
   {
+    href: "/ai-assistant",
+    label: "Genie assistant",
+    icon: (
+      <>
+        <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" />
+        <path d="M20 3v4M18 5h4" />
+      </>
+    ),
+  },
+  {
     href: "/sales-brochure-generator",
     label: "Sales brochure",
     icon: (

@@ -1,0 +1,72 @@
+.genie-page { padding: 0 44px; max-width: 1440px; margin: auto; }
+.genie-topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); }
+.genie-badge { display: flex; align-items: center; gap: 7px; color: var(--muted-strong); font-size: 11px; }
+.genie-page svg { width: 20px; height: 20px; flex-shrink: 0; }
+.genie-badge svg { width: 15px; height: 15px; color: var(--green); }
+.genie-workspace { display: flex; flex-direction: column; height: calc(100dvh - 76px); min-height: 640px; max-height: 1200px; }
+.genie-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 25px 0; }
+.genie-identity { display: flex; align-items: center; gap: 12px; }
+.genie-avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--green); color: white; }
+.genie-identity h1 { margin: 0; font-size: 22px; letter-spacing: -.7px; font-weight: 600; }
+.genie-identity p { margin: 4px 0 0; color: var(--muted-strong); font-size: 11px; }
+.genie-model { min-width: 0; }
+.genie-model label { display: block; margin-bottom: 5px; color: var(--muted-strong); font-size: 9px; letter-spacing: 1.3px; font-weight: 600; }
+.genie-model > div { display: flex; gap: 4px; align-items: center; }
+.genie-model select { width: 190px; max-width: 100%; min-height: 44px; padding: 8px 28px 8px 12px; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-control); font: inherit; font-size: 12px; text-overflow: ellipsis; }
+.genie-icon-button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--muted-strong); cursor: pointer; }
+.genie-icon-button svg { width: 16px; height: 16px; }
+.genie-icon-button:hover:not(:disabled) { color: var(--green); background: var(--green-soft); }
+.genie-transcript { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--green-light) transparent; }
+.genie-welcome { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100%; padding: 16px 0 30px; text-align: center; }
+.genie-welcome-symbol { width: 68px; height: 68px; display: grid; place-items: center; position: relative; margin: 8px 0 24px; border-radius: 23px; background: var(--green-soft); color: var(--green); transform: rotate(-8deg); }
+.genie-welcome-symbol > svg { width: 36px; height: 36px; transform: rotate(8deg); }
+.genie-orbit { position: absolute; width: 88px; height: 88px; border: 1px solid var(--green-light); border-radius: 30px; transform: rotate(22deg); }
+.genie-eyebrow { margin: 0 0 16px; font-size: 9px; letter-spacing: 2px; font-weight: 600; color: var(--muted-strong); }
+.genie-welcome h2 { margin: 0; color: #24352e; font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(34px, 3.8vw, 55px); line-height: 1.14; letter-spacing: -1.8px; }
+.genie-welcome h2 em { color: var(--green); font-weight: 400; }
+.genie-welcome-copy { margin: 20px 0 30px; font-size: 13px; line-height: 1.9; color: var(--muted-strong); }
+.genie-suggestions { width: min(100%, 800px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; text-align: left; }
+.genie-suggestions button { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; padding: 17px 14px; border: 1px solid var(--line); border-radius: var(--radius-card); color: var(--ink-soft); background: var(--surface); cursor: pointer; text-align: left; transition: border-color 160ms, transform 160ms, background 160ms; }
+.genie-suggestions button > svg { margin-bottom: 10px; color: var(--green); }
+.genie-suggestions strong { font-size: 12px; font-weight: 550; line-height: 1.5; }
+.genie-suggestions button > span:not(.genie-card-arrow) { font-size: 10px; color: var(--muted-strong); line-height: 1.6; }
+.genie-card-arrow { position: absolute; right: 14px; top: 14px; color: var(--muted-strong); }
+.genie-suggestions button:hover { border-color: #8bb09d; background: var(--green-soft); transform: translateY(-3px); }
+.genie-compose-area { width: min(100%, 880px); margin: 0 auto; padding-top: 14px; padding-bottom: 22px; }
+.genie-composer { padding: 18px 18px 12px; border: 1px solid #d7e1d9; background: var(--surface); border-radius: var(--radius-panel); box-shadow: 0 6px 28px rgb(34 54 43 / 4%); }
+.genie-composer:focus-within { border-color: #75a78e; box-shadow: 0 0 0 3px rgb(92 148 113 / 10%); }
+.genie-composer textarea { display: block; width: 100%; min-height: 60px; max-height: 180px; padding: 0; resize: vertical; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 14px; line-height: 1.7; }
+.genie-composer textarea::placeholder { color: var(--muted-strong); }
+.genie-composer-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; }
+.genie-composer-footer > span { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--muted-strong); }
+.genie-composer-footer > span svg { width: 14px; height: 14px; color: var(--green); }
+.genie-send { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-control); color: white; background: var(--green); font-size: 12px; font-weight: 500; cursor: pointer; }
+.genie-send:hover:not(:disabled) { background: var(--green-dark); }
+.genie-send svg { width: 17px; height: 17px; }
+.genie-page button:disabled, .genie-page select:disabled { opacity: .55; cursor: not-allowed; }
+.genie-stop-icon { width: 10px; height: 10px; background: currentColor; border-radius: 2px; }
+.genie-bottom-note { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 3px 0; color: var(--muted-strong); font-size: 9px; line-height: 1.5; }
+.genie-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 12px; border: 1px solid #e9cbc3; border-radius: var(--radius-control); background: var(--error-soft); color: var(--error); font-size: 12px; line-height: 1.6; }
+.genie-error button { min-height: 44px; padding: 0 12px; border: 1px solid currentColor; background: transparent; color: inherit; border-radius: var(--radius-control); cursor: pointer; }
+.genie-messages { width: min(100%, 820px); margin: 0 auto; padding: 18px 10px 30px; display: grid; gap: 30px; }
+.genie-message { display: flex; align-items: flex-start; gap: 14px; min-width: 0; }
+.genie-message-avatar { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; background: var(--green-soft); color: var(--green); font-size: 12px; }
+.genie-message-user .genie-message-avatar { background: #edeae3; color: #736552; }
+.genie-message-avatar svg { width: 18px; height: 18px; }
+.genie-message-body { min-width: 0; flex: 1; padding-top: 5px; }
+.genie-message-body > header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+.genie-message-body > header strong { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.genie-message-body > header span { font-size: 10px; color: var(--muted-strong); overflow-wrap: anywhere; }
+.genie-user-text { white-space: pre-wrap; margin: 0; font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; }
+.genie-markdown { font-size: 15px; overflow-wrap: anywhere; }
+.genie-markdown table { display: block; overflow-x: auto; }
+.genie-thinking, .genie-message-note { font-size: 12px; color: var(--muted-strong); }
+.genie-copy { display: flex; align-items: center; gap: 7px; min-height: 44px; margin-top: 10px; padding: 0 8px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--muted-strong); font-size: 10px; cursor: pointer; }
+.genie-copy svg { width: 13px; height: 13px; }
+.genie-copy:hover { color: var(--green); background: var(--green-soft); }
+.genie-page button:focus-visible, .genie-page select:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.genie-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (min-width: 1500px) { .genie-welcome h2 { font-size: 60px; } .genie-suggestions { margin-top: 14px; } }
+@media (max-width: 1100px) { .genie-page { padding: 0 28px; } .genie-suggestions { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 600px; } .genie-suggestions button { padding: 12px 14px; gap: 5px; } .genie-suggestions button > svg { margin-bottom: 4px; } .genie-welcome-symbol { margin-bottom: 20px; } .genie-workspace { min-height: 760px; } }
+@media (max-width: 680px) { .genie-page { padding: 0 20px; } .genie-topbar { height: 56px; } .genie-badge { display: none; } .genie-workspace { height: auto; min-height: calc(100dvh - 170px); max-height: none; } .genie-toolbar { align-items: flex-start; padding: 22px 0; gap: 16px; flex-wrap: wrap; } .genie-identity { flex: 1; } .genie-identity p { max-width: 180px; line-height: 1.6; } .genie-model { width: 100%; } .genie-model > div { width: 100%; } .genie-model select { width: 100%; } .genie-transcript { min-height: 260px; max-height: 65dvh; } .genie-transcript:has(.genie-welcome) { max-height: none; overflow: visible; } .genie-welcome { padding: 18px 0; } .genie-welcome h2 { font-size: 38px; } .genie-welcome-copy { font-size: 13px; margin-bottom: 24px; } .genie-desktop-break { display: none; } .genie-suggestions strong { font-size: 12px; } .genie-composer { padding: 14px; } .genie-composer textarea { font-size: 16px; } .genie-composer-footer > span { max-width: 130px; font-size: 9px; line-height: 1.5; } .genie-send { padding: 0 12px; font-size: 11px; } .genie-message { gap: 10px; } .genie-messages { padding-inline: 0; } .genie-bottom-note { justify-content: center; text-align: center; } }
+@media (prefers-reduced-motion: reduce) { .genie-page *, .genie-page *::before, .genie-page *::after { transition: none; animation: none; scroll-behavior: auto; } }
