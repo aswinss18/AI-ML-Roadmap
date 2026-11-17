@@ -118,13 +118,4 @@ The app uses the Radix Nova preset with JavaScript and Tailwind 4.
 ```bash
 npm run lint
 npm run build
-npm run test:ui
 ```
-
-Browser tests start a production preview on port 3100 and use controlled API
-responses, so they do not require model inference. Coverage includes themes,
-mobile navigation, keyboard dialogs, model selection and logos, copy/download,
-stream formats, error handling, cancellation, and automated accessibility checks.
-Windows uses installed Microsoft Edge. On other platforms, run
-`npx playwright install chromium` first, or set `PLAYWRIGHT_CHANNEL` to an installed
-browser channel. Screenshots and traces are written under `test-results/`.
