@@ -43,11 +43,24 @@ export function ModelSelect({
         onValueChange={onValueChange}
         disabled={disabled || loading || !models.length}
       >
-        <SelectTrigger id={id} className="model-trigger">
+        <SelectTrigger
+          id={id}
+          className="model-trigger"
+          title={loading ? "Finding models…" : value || "No models available"}
+          aria-busy={loading || undefined}
+        >
           <SelectValue
             placeholder={loading ? "Finding models…" : "No models available"}
           >
-            {value ? (
+            {loading ? (
+              <span className="flex min-w-0 items-center gap-2">
+                <Loader2
+                  className="size-3.5 shrink-0 animate-spin"
+                  aria-hidden="true"
+                />
+                <span className="truncate">Finding models…</span>
+              </span>
+            ) : value ? (
               <span className="model-selected">
                 <ModelIcon model={value} />
                 <span className="model-selected-name">{selected.name}</span>
@@ -61,7 +74,8 @@ export function ModelSelect({
         <SelectContent
           position="popper"
           align="start"
-          className="model-catalog"
+          collisionPadding={16}
+          className="model-catalog max-w-[calc(100vw-2rem)]"
         >
           <SelectGroup>
             <SelectLabel className="model-catalog-label">
@@ -71,16 +85,16 @@ export function ModelSelect({
               const identity = getModelIdentity(model);
               return (
                 <SelectItem
-                  className="model-option"
+                  className="model-option min-w-0 [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1"
                   key={model}
                   value={model}
                   textValue={`${identity.name} ${identity.detail}`}
                 >
-                  <span className="model-option-row">
+                  <span className="model-option-row min-w-0">
                     <span className="model-option-logo">
                       <ModelIcon model={model} />
                     </span>
-                    <span className="model-option-copy">
+                    <span className="model-option-copy min-w-0 [overflow-wrap:anywhere]">
                       <strong>{identity.name}</strong>
                       <small>{identity.detail}</small>
                     </span>
@@ -102,11 +116,11 @@ export function ErrorNotice({
   if (!children) return null;
   return (
     <Alert variant="destructive" className="studio-alert">
-      <AlertCircle />
+      <AlertCircle aria-hidden="true" />
       <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>
-        <span>{children}</span>
-        {action}
+      <AlertDescription className="flex min-w-0 flex-col items-start">
+        <span className="min-w-0">{children}</span>
+        {action && <div className="flex flex-wrap gap-2">{action}</div>}
       </AlertDescription>
     </Alert>
   );

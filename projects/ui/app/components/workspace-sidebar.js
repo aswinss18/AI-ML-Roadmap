@@ -8,7 +8,6 @@ import {
   ArrowUpRight,
   AudioLines,
   BookOpen,
-  Check,
   CircleHelp,
   FileText,
   Layers2,
@@ -34,7 +33,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -103,19 +103,18 @@ function ThemeMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-52">
-        {[
-          { value: "light", label: "Light", icon: Sun },
-          { value: "dark", label: "Dark", icon: Moon },
-          { value: "system", label: "System", icon: Monitor },
-        ].map(({ value, label, icon: Icon }) => (
-          <DropdownMenuItem key={value} onSelect={() => setTheme(value)}>
-            <Icon />
-            {label}
-            <Check
-              className={`ml-auto ${theme === value ? "opacity-100" : "opacity-0"}`}
-            />
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+          {[
+            { value: "light", label: "Light", icon: Sun },
+            { value: "dark", label: "Dark", icon: Moon },
+            { value: "system", label: "System", icon: Monitor },
+          ].map(({ value, label, icon: Icon }) => (
+            <DropdownMenuRadioItem key={value} value={value}>
+              <Icon />
+              {label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -126,6 +125,7 @@ export default function WorkspaceSidebar() {
   const router = useRouter();
   const searchRef = useRef(null);
   const helpRef = useRef(null);
+  const searchReturnFocusRef = useRef(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const { setOpenMobile } = useSidebar();
@@ -133,17 +133,31 @@ export default function WorkspaceSidebar() {
     function onKey(event) {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
+        if (!searchOpen) searchReturnFocusRef.current = document.activeElement;
         setSearchOpen((open) => !open);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [searchOpen]);
+
+  function restoreFocus(element) {
+    const target =
+      element?.isConnected && element.getClientRects().length
+        ? element
+        : document.getElementById("main-content");
+    target?.focus();
+  }
   return (
     <>
       <Sidebar className="studio-sidebar" collapsible="offcanvas">
         <SidebarHeader className="studio-sidebar-header">
-          <Link href="/" className="studio-brand" aria-label="AI Studio home">
+          <Link
+            href="/"
+            className="studio-brand"
+            aria-label="AI Studio home"
+            onClick={() => setOpenMobile(false)}
+          >
             <span className="studio-logo">
               <BrandMark />
             </span>
@@ -198,7 +212,10 @@ export default function WorkspaceSidebar() {
             className="studio-search"
             aria-label="Find a tool"
             title="Find a tool (Ctrl K)"
-            onClick={() => setSearchOpen(true)}
+            onClick={() => {
+              searchReturnFocusRef.current = searchRef.current;
+              setSearchOpen(true);
+            }}
           >
             <Search />
             <span className="rail-mobile-label">Find a tool</span>
@@ -220,16 +237,21 @@ export default function WorkspaceSidebar() {
       <CommandDialog
         onCloseAutoFocus={(event) => {
           event.preventDefault();
-          searchRef.current?.focus();
+          restoreFocus(searchReturnFocusRef.current);
         }}
+        className="top-1/2 max-h-[calc(100dvh-2rem)] -translate-y-1/2"
+        showCloseButton
         open={searchOpen}
         onOpenChange={setSearchOpen}
         title="Find a tool"
         description="Search and switch between your studio tools."
       >
         <Command>
-          <CommandInput placeholder="What would you like to do?" />
-          <CommandList>
+          <CommandInput
+            className="pr-9"
+            placeholder="What would you like to do?"
+          />
+          <CommandList className="max-h-[min(18rem,calc(100dvh-6rem))]">
             <CommandEmpty>
               No tools found. Try “tutor” or “brochure”.
             </CommandEmpty>
@@ -240,6 +262,7 @@ export default function WorkspaceSidebar() {
                     key={href}
                     value={`${label} ${description}`}
                     onSelect={() => {
+                      searchReturnFocusRef.current = null;
                       setSearchOpen(false);
                       setOpenMobile(false);
                       router.push(href);
@@ -264,9 +287,9 @@ export default function WorkspaceSidebar() {
         <DialogContent
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            helpRef.current?.focus();
+            restoreFocus(helpRef.current);
           }}
-          className="sm:max-w-lg"
+          className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg"
         >
           <DialogHeader>
             <DialogTitle>Your workspace, explained.</DialogTitle>

@@ -26,18 +26,18 @@
   white-space: nowrap;
 }
 .genie-model-tools .model-trigger {
-  height: 30px !important;
+  height: 38px !important;
   border-color: transparent;
   box-shadow: none;
-  font-size: 11px;
+  font-size: 12px;
   background: transparent;
 }
 .genie-model-tools .model-trigger:hover {
   background: var(--muted);
 }
 .genie-model-tools > button {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   color: var(--muted-foreground);
 }
@@ -83,6 +83,7 @@
   margin: 0 auto;
 }
 .genie-compose-area {
+  flex-shrink: 0;
   max-width: 816px;
   width: 100%;
   padding: 18px 28px 22px;
@@ -120,14 +121,16 @@
 }
 .genie-composer-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
   padding: 0 14px 14px;
 }
 .genie-send {
-  font-size: 11px;
-  height: 33px;
+  margin-left: auto;
+  font-size: 12px;
+  height: 38px;
   gap: 10px;
   flex-shrink: 0;
 }
@@ -140,7 +143,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.8;
   color: var(--muted-foreground);
 }
@@ -222,8 +225,8 @@
   line-height: 1.8;
 }
 .genie-copy {
-  font-size: 10px;
-  height: 26px;
+  font-size: 12px;
+  height: 36px;
   color: var(--muted-foreground);
   margin-top: 14px;
   padding: 0 6px;
@@ -326,5 +329,50 @@
   }
   .genie-workspace.is-empty:has(.genie-model-notice) .genie-compose-area {
     margin-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .genie-page:has(.genie-workspace.is-empty) {
+    height: auto;
+    min-height: calc(100svh - 56px);
+  }
+  .genie-workspace.is-empty {
+    overflow: visible;
+  }
+  .genie-composer textarea {
+    font-size: 16px;
+  }
+  .genie-composer-footer {
+    gap: 10px;
+    padding: 0 12px 12px;
+  }
+  .genie-model-tools {
+    flex: 1 1 150px;
+    gap: 4px;
+    max-width: 100%;
+  }
+  .genie-model-tools .model-trigger {
+    min-height: 44px;
+    font-size: 12px;
+  }
+  .genie-model-tools > button,
+  .genie-copy,
+  .genie-send {
+    min-height: 44px;
+  }
+  .genie-model-tools > button {
+    width: 44px;
+  }
+  .genie-send {
+    font-size: 12px;
+    padding: 0 12px;
+  }
+  .genie-bottom-note {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .genie-starters > button {
+    font-size: 12px;
   }
 }

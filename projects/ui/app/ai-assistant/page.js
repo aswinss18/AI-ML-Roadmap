@@ -98,6 +98,8 @@ export default function GeniePage() {
           "Could not load models. Check that Genie and Ollama are running, then retry.",
         );
       const data = await response.json();
+      if (modelsRequestRef.current !== controller || controller.signal.aborted)
+        return;
       setModelError("");
       const available = Array.isArray(data.models)
         ? [
@@ -153,6 +155,7 @@ export default function GeniePage() {
       modelsRequestRef.current = null;
       controller?.abort();
       requestRef.current?.abort();
+      requestRef.current = null;
     };
   }, [loadModels]);
 
@@ -229,9 +232,11 @@ export default function GeniePage() {
           "The reply was interrupted on the server. You can send a follow-up to continue.",
         );
       }
+      if (controller.signal.aborted) throw controller.signal.reason;
       setStatus("");
       notify("Reply complete.", "success");
     } catch (err) {
+      if (requestRef.current !== controller) return;
       if (controller.signal.aborted) {
         setStatus("");
         setMessages((current) =>

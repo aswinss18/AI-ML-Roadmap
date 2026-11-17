@@ -93,7 +93,7 @@ export default function Conversation() {
               ),
             ]
           : [];
-        if (request.signal.aborted) return;
+        if (request.signal.aborted) throw request.signal.reason;
         const defaultModel = models.includes(DEFAULT_MODEL)
           ? DEFAULT_MODEL
           : (models[0] ?? "");
@@ -122,7 +122,13 @@ export default function Conversation() {
     };
   }, [modelRequest]);
 
-  useEffect(() => () => activeRequest.current?.abort(), []);
+  useEffect(
+    () => () => {
+      activeRequest.current?.abort();
+      activeRequest.current = null;
+    },
+    [],
+  );
   useEffect(() => {
     if (followRef.current && transcriptRef.current)
       transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
@@ -146,6 +152,7 @@ export default function Conversation() {
     setMessages([]);
     setError("");
     setStatus("streaming");
+    let hasReply = false;
 
     try {
       const response = await fetch(`${API_URL}/mutimodel-chat`, {
@@ -162,13 +169,19 @@ export default function Conversation() {
         throw new Error("The API could not start the conversation.");
 
       for await (const event of readEvents(response.body)) {
+        if (request.signal.aborted) return;
         if (event.type === "error") throw new Error(event.message);
         if (event.type === "done") {
+          if (!hasReply)
+            throw new Error(
+              "No replies arrived. Try starting the conversation again.",
+            );
           setStatus("complete");
           notify("Conversation complete.", "success");
           return;
         }
         if (event.type === "delta") {
+          hasReply ||= Boolean(event.text?.trim());
           setMessages((current) => {
             const last = current.at(-1);
             const { speaker, turn, text } = event;
@@ -186,6 +199,7 @@ export default function Conversation() {
         "The conversation stream ended early. You can start a new conversation.",
       );
     } catch (error) {
+      if (activeRequest.current !== request) return;
       if (request.signal.aborted) {
         setStatus("stopped");
       } else {
@@ -198,7 +212,7 @@ export default function Conversation() {
         );
       }
     } finally {
-      activeRequest.current = null;
+      if (activeRequest.current === request) activeRequest.current = null;
     }
   }
 

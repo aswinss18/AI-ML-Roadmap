@@ -47,23 +47,28 @@ export default function SalesBrochureGenerator() {
   const urlRef = useRef(null);
   const [layout, setLayout] = useState("editorial");
   const [view, setView] = useState("preview");
-  useEffect(() => () => requestRef.current?.abort(), []);
+  useEffect(
+    () => () => {
+      requestRef.current?.abort();
+      requestRef.current = null;
+    },
+    [],
+  );
 
   async function handleSubmit(event) {
     event.preventDefault();
     if (requestRef.current) return;
     const controller = new AbortController();
+    const submittedUrl = url.trim();
     requestRef.current = controller;
     setError("");
-    setBrochure(null);
     setView("preview");
     setIsLoading(true);
-    setSource(url.trim());
     try {
       const response = await fetch(`${API_BASE_URL}/generate-brochure`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), model }),
+        body: JSON.stringify({ url: submittedUrl, model }),
         signal: controller.signal,
       });
       const result = await response.json();
@@ -73,11 +78,20 @@ export default function SalesBrochureGenerator() {
             ? result.detail
             : "We couldn't generate a brochure for this website. Try another URL.",
         );
-      if (!result.data?.heading || !Array.isArray(result.data.bullet_points))
+      if (
+        typeof result.data?.heading !== "string" ||
+        !result.data.heading.trim() ||
+        typeof result.data.description !== "string" ||
+        typeof result.data.summary !== "string" ||
+        !Array.isArray(result.data.bullet_points) ||
+        !result.data.bullet_points.every((point) => typeof point === "string")
+      )
         throw new Error(
           "The service returned an unexpected brochure. Please try again.",
         );
+      if (controller.signal.aborted) return;
       setBrochure(result.data);
+      setSource(submittedUrl);
       notify("Brochure draft ready.", "success");
     } catch (err) {
       if (err.name !== "AbortError") {
@@ -89,8 +103,10 @@ export default function SalesBrochureGenerator() {
         );
       }
     } finally {
-      requestRef.current = null;
-      setIsLoading(false);
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setIsLoading(false);
+      }
     }
   }
   async function copyBrochure() {
@@ -244,7 +260,7 @@ export default function SalesBrochureGenerator() {
               <LayoutTemplate size={14} />
               Preview
             </TabsTrigger>
-            <TabsTrigger value="text" disabled={!brochure}>
+            <TabsTrigger value="text" disabled={!brochure || isLoading}>
               <AlignLeft size={14} />
               Plain text
             </TabsTrigger>
@@ -254,7 +270,7 @@ export default function SalesBrochureGenerator() {
               variant="ghost"
               size="sm"
               onClick={copyBrochure}
-              disabled={!brochure}
+              disabled={!brochure || isLoading}
               aria-label="Copy brochure"
             >
               <Copy />
@@ -265,7 +281,7 @@ export default function SalesBrochureGenerator() {
               variant="outline"
               size="sm"
               onClick={downloadBrochure}
-              disabled={!brochure}
+              disabled={!brochure || isLoading}
             >
               <ArrowDownToLine />
               <span>Download</span>

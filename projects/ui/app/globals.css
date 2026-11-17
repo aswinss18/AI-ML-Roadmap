@@ -337,7 +337,7 @@
   line-height: 1.4;
 }
 .field-hint {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.65;
   color: var(--muted-foreground);
 }
@@ -385,13 +385,19 @@
   height: 15px;
 }
 .studio-alert {
-  font-size: 12px;
+  padding: 16px;
+  row-gap: 6px;
+  font-size: 14px;
   line-height: 1.6;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 .studio-alert [data-slot="alert-description"] {
-  gap: 10px;
+  gap: 12px;
+  line-height: 1.6;
+}
+.studio-alert [data-slot="alert-description"] button {
+  min-height: 40px;
 }
 .small-dot {
   display: inline-block;
@@ -405,7 +411,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   white-space: nowrap;
 }
@@ -599,7 +605,7 @@
 }
 .editor-toolbar {
   min-height: 52px;
-  height: 52px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -621,7 +627,7 @@
   border: 0;
   border-radius: 0;
   box-shadow: none !important;
-  font-size: 11px;
+  font-size: 12px;
   background: transparent !important;
   position: relative;
   padding: 0;
@@ -646,7 +652,7 @@
 }
 .toolbar-actions > button {
   height: 29px;
-  font-size: 11px;
+  font-size: 12px;
   gap: 6px;
 }
 .toolbar-actions [data-slot="separator"] {
@@ -889,6 +895,8 @@
   border-radius: 4px;
 }
 .editor-statusbar {
+  flex-shrink: 0;
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -935,7 +943,7 @@
   align-items: center;
   gap: 8px;
 }
-.session-toolbar > span:last-child {
+.session-toolbar > span + span {
   color: var(--muted-foreground);
   font-size: 10px;
 }
@@ -983,6 +991,7 @@
   margin-top: 10px;
 }
 .tutor-compose-area {
+  flex-shrink: 0;
   width: 100%;
   max-width: 816px;
   margin: 0 auto;
@@ -1040,6 +1049,7 @@
 }
 .composer-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -1060,20 +1070,21 @@
   white-space: nowrap;
 }
 .composer-controls .model-trigger {
-  height: 32px !important;
+  height: 38px !important;
   border-color: transparent;
   box-shadow: none;
   background: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .composer-action-group {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .composer-action-group button {
-  height: 33px;
-  font-size: 11px;
+  height: 38px;
+  font-size: 12px;
 }
 .starter-list {
   display: flex;
@@ -1083,13 +1094,13 @@
   padding-top: 3px;
 }
 .starter-list > span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-right: 5px;
 }
 .starter-list > button {
-  font-size: 10px;
-  height: 29px;
+  font-size: 12px;
+  height: 36px;
   padding: 0 8px;
   gap: 6px;
   font-weight: 400;
@@ -1107,7 +1118,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
   color: var(--muted-foreground);
 }
@@ -1142,6 +1153,7 @@
   overflow-wrap: anywhere;
 }
 .response-card-header {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1388,6 +1400,7 @@
 }
 .discussion-ready {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: 22px;
@@ -1402,6 +1415,7 @@
   color: var(--muted-foreground);
 }
 .discussion-compose-area {
+  flex-shrink: 0;
   max-width: 704px;
   padding: 16px 32px 22px;
   width: 100%;
@@ -1416,26 +1430,28 @@
 }
 .discussion-composer-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
   padding: 0 14px 14px;
 }
 .discussion-composer-controls > span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
   padding-left: 7px;
 }
 .discussion-composer-controls > button {
+  margin-left: auto;
   height: 33px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .discussion-compose-area .discussion-topics {
   margin-top: 12px;
 }
 .discussion-compose-area .discussion-topics > button {
   height: 39px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* Responsive: workbench panes become a natural single-column flow. */
@@ -1675,7 +1691,7 @@
     padding: 0 18px;
     min-height: 49px;
   }
-  .session-toolbar > span:last-child {
+  .session-toolbar > span + span {
     font-size: 9px;
   }
   .conversation-intro {
@@ -2093,5 +2109,119 @@
   .discussion-compose-area .discussion-topics > button {
     height: 35px;
     font-size: 10px;
+  }
+}
+
+/* Keep the document usable at tablet widths without squeezing the preview. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .document-workbench:not(.multi-workspace) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: max-content max-content;
+    align-content: start;
+    overflow-y: auto;
+  }
+  .document-workbench:not(.multi-workspace) .workbench-inspector {
+    overflow: visible;
+    border-right: 0;
+  }
+  .document-workbench:not(.multi-workspace) .inspector-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .document-workbench:not(.multi-workspace) .document-outline {
+    display: none;
+  }
+  .document-workbench:not(.multi-workspace) .inspector-submit {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+  .document-workbench:not(.multi-workspace) .document-editor {
+    height: auto;
+    min-height: 750px;
+  }
+  .document-workbench:not(.multi-workspace) .document-stage {
+    overflow: visible;
+  }
+}
+@media (max-width: 767px) {
+  .tutor-workspace.is-empty {
+    height: auto;
+    min-height: calc(100svh - 56px);
+    overflow: visible;
+  }
+  .tutor-workspace.is-empty .tutor-transcript {
+    margin-top: 0;
+  }
+  .question-textarea,
+  .input-with-icon input,
+  .inspector-section textarea {
+    font-size: 16px;
+  }
+  .input-with-icon input,
+  .primary-action,
+  .model-trigger,
+  .multi-workspace .participant .model-trigger {
+    min-height: 44px;
+  }
+  .input-with-icon > svg {
+    top: 14px;
+  }
+  .composer-controls,
+  .discussion-composer-controls {
+    gap: 10px;
+    padding: 0 12px 12px;
+  }
+  .composer-controls .model-field {
+    width: 150px;
+    max-width: 100%;
+  }
+  .composer-action-group button,
+  .discussion-composer-controls > button {
+    min-height: 44px;
+    font-size: 12px;
+    padding: 0 12px;
+  }
+  .composer-controls .model-trigger,
+  .multi-workspace .participant .model-trigger,
+  .toolbar-tabs [data-slot="tabs-trigger"],
+  .toolbar-actions > button,
+  .starter-list > span,
+  .starter-list > button,
+  .discussion-compose-area .discussion-topics > button {
+    font-size: 12px;
+  }
+  .toolbar-actions > button,
+  .starter-list > button,
+  .response-card-header > button {
+    min-height: 44px;
+  }
+  .toolbar-actions > button {
+    min-width: 44px;
+  }
+  .toolbar-tabs {
+    gap: 12px;
+  }
+  .editor-toolbar {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding-block: 6px;
+  }
+  .toolbar-actions {
+    margin-left: auto;
+  }
+  .composer-note,
+  .composer-note kbd,
+  .discussion-composer-controls > span,
+  .editor-statusbar,
+  .editor-statusbar .copy-status,
+  .editor-statusbar > span:last-child {
+    font-size: 11px;
+  }
+  .intro-caption {
+    font-size: 10px;
+  }
+  .conversation-intro > p,
+  .discussion-intro > p {
+    font-size: 14px;
   }
 }

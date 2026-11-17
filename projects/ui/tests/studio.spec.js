@@ -94,7 +94,7 @@ test("appearance persists and keyboard search navigates to a tool", async ({
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Appearance" }).click();
-  await page.getByRole("menuitem", { name: "Dark", exact: true }).click();
+  await page.getByRole("menuitemradio", { name: "Dark", exact: true }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/dark/);

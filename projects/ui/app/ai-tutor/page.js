@@ -100,7 +100,13 @@ export default function AiTutorPage() {
   const transcriptRef = useRef(null);
   const followRef = useRef(true);
   const [answerModel, setAnswerModel] = useState(model);
-  useEffect(() => () => abortControllerRef.current?.abort(), []);
+  useEffect(
+    () => () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (followRef.current && transcriptRef.current)
@@ -194,12 +200,17 @@ export default function AiTutorPage() {
           break;
         }
       }
+      if (controller.signal.aborted) return;
       if (hasAnswer) {
         notify("Tutor answer ready.", "success");
       } else {
+        setError(
+          "No answer arrived. Try your question again or choose another model.",
+        );
         notify("No tutor answer arrived. Try asking again.", "warning");
       }
     } catch (requestError) {
+      if (abortControllerRef.current !== controller) return;
       if (requestError.name === "AbortError") {
         setWasStopped(true);
       } else {
@@ -214,8 +225,8 @@ export default function AiTutorPage() {
     } finally {
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
+        setIsStreaming(false);
       }
-      setIsStreaming(false);
     }
   }
 
@@ -224,7 +235,6 @@ export default function AiTutorPage() {
     abortControllerRef.current?.abort();
     notify("Tutor response stopped.");
     setWasStopped(true);
-    setIsStreaming(false);
   }
 
   async function copyAnswer() {
@@ -277,6 +287,7 @@ export default function AiTutorPage() {
                     variant="ghost"
                     size="sm"
                     onClick={copyAnswer}
+                    disabled={isStreaming}
                     aria-label={copied ? "Answer copied" : "Copy answer"}
                   >
                     {copied ? <Check /> : <Copy />}
