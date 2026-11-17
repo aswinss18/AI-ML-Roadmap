@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -83,7 +84,7 @@ export default function GeniePage() {
   const transcriptRef = useRef(null);
   const followRef = useRef(true);
 
-  const loadModels = useCallback(async () => {
+  const loadModels = useCallback(async (showSuccess = false) => {
     modelsRequestRef.current?.abort();
     const controller = new AbortController();
     modelsRequestRef.current = controller;
@@ -111,12 +112,17 @@ export default function GeniePage() {
       setModel((current) =>
         available.includes(current) ? current : available[0] || "",
       );
-      if (!available.length)
+      if (!available.length) {
         setModelError(
           "No models found. Install a model in Ollama, then refresh the list.",
         );
+        notify("No models found.", "warning");
+      } else if (showSuccess) {
+        notify("Model list refreshed.", "success");
+      }
     } catch (err) {
       if (modelsRequestRef.current !== controller) return;
+      notify("Could not load assistant models.", "error");
       setModels([]);
       setModel("");
       setModelError(
@@ -135,7 +141,7 @@ export default function GeniePage() {
   function refreshModels() {
     setLoadingModels(true);
     setModelError("");
-    loadModels();
+    loadModels(true);
   }
 
   useEffect(() => {
@@ -223,16 +229,18 @@ export default function GeniePage() {
           "The reply was interrupted on the server. You can send a follow-up to continue.",
         );
       }
-      setStatus("Reply complete.");
+      setStatus("");
+      notify("Reply complete.", "success");
     } catch (err) {
       if (controller.signal.aborted) {
-        setStatus("Reply stopped.");
+        setStatus("");
         setMessages((current) =>
           current.map((item) =>
             item.id === id ? { ...item, note: "Reply stopped" } : item,
           ),
         );
       } else {
+        notify("Genie could not finish the reply.", "error");
         setError(
           err instanceof TypeError
             ? "Connection lost. Check that the Genie API is running, then send your message again."
@@ -258,10 +266,11 @@ export default function GeniePage() {
     try {
       await navigator.clipboard.writeText(message.content);
       setCopiedId(message.id);
-      setStatus("Reply copied.");
+      notify("Reply copied to clipboard.", "success");
     } catch {
-      setStatus(
+      notify(
         "Copy is unavailable. Select the reply text to copy it manually.",
+        "error",
       );
     }
   }
@@ -438,6 +447,7 @@ export default function GeniePage() {
                     onClick={(event) => {
                       event.preventDefault();
                       requestRef.current?.abort();
+                      notify("Reply stopped.");
                     }}
                   >
                     <Square className="size-3" />

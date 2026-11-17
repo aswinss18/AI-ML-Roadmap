@@ -138,7 +138,10 @@ test("brochure preserves request fields, source URL, copy, download, and text pr
     "https://example.com",
   );
   await page.getByRole("button", { name: "Copy brochure" }).click();
-  await expect(page.getByRole("status")).toContainText("Copied to clipboard");
+  const copyToast = page.locator('[data-slot="toast"]').filter({
+    hasText: "Brochure copied to clipboard.",
+  });
+  await expect(copyToast).toContainText("Your model, your conversation");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
     brochure.heading,
   );
@@ -194,6 +197,9 @@ test("tutor handles SSE framing and retains the model used for an answer", async
     model: "llama3.2:latest",
   });
   await expect(page.getByRole("status")).toContainText("Answer complete");
+  await expect(page.locator('[data-slot="toast"]')).toContainText(
+    "Tutor answer ready.",
+  );
   await page.getByRole("combobox").click();
   await page
     .getByRole("option", { name: "GPT OSS OpenAI", exact: true })
@@ -247,6 +253,9 @@ test("Genie sends raw streaming replies and preserves message alignment", async 
   await expect(
     page.getByRole("heading", { name: "A fresh perspective" }),
   ).toBeVisible();
+  await expect(page.locator('[data-slot="toast"]')).toContainText(
+    "Reply complete.",
+  );
   expect(payload).toEqual({
     message: "Help me brainstorm",
     model: "llama3.2:latest",
@@ -320,6 +329,9 @@ test("model conversation preserves NDJSON turns and endpoint contract", async ({
     .click();
   await page.getByRole("button", { name: "Start conversation" }).click();
   await expect(page.getByRole("status")).toContainText("Complete");
+  await expect(page.locator('[data-slot="toast"]')).toContainText(
+    "Conversation complete.",
+  );
   await expect(page.locator(".conversation-turn")).toHaveCount(2);
   expect(payload).toEqual({
     topic: "A city on Mars",

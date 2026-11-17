@@ -11,6 +11,7 @@ import {
   List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -99,9 +100,16 @@ export default function Conversation() {
         setModels(models);
         setSelection({ liz: defaultModel, jarviz: defaultModel });
         setModelStatus(models.length ? "ready" : "empty");
+        if (!models.length) {
+          notify("No chat models found.", "warning");
+        } else if (modelRequest > 0) {
+          notify("Chat models loaded.", "success");
+        }
       } catch {
-        if (!request.signal.aborted || request.signal.reason === "timeout")
+        if (!request.signal.aborted || request.signal.reason === "timeout") {
           setModelStatus("error");
+          notify("Could not load chat models.", "error");
+        }
       } finally {
         clearTimeout(timeout);
       }
@@ -157,6 +165,7 @@ export default function Conversation() {
         if (event.type === "error") throw new Error(event.message);
         if (event.type === "done") {
           setStatus("complete");
+          notify("Conversation complete.", "success");
           return;
         }
         if (event.type === "delta") {
@@ -181,6 +190,7 @@ export default function Conversation() {
         setStatus("stopped");
       } else {
         setStatus("failed");
+        notify("Conversation interrupted.", "error");
         setError(
           error instanceof TypeError
             ? "Could not reach the chat API. Check that the multi-chat-bots server is running."
@@ -415,6 +425,7 @@ export default function Conversation() {
                       ? (event) => {
                           event.preventDefault();
                           activeRequest.current?.abort();
+                          notify("Conversation stopped.");
                         }
                       : undefined
                   }

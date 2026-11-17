@@ -14,6 +14,7 @@ import {
   LayoutTemplate,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { notify } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -42,7 +43,6 @@ export default function SalesBrochureGenerator() {
   const [source, setSource] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [copyStatus, setCopyStatus] = useState("");
   const requestRef = useRef(null);
   const urlRef = useRef(null);
   const [layout, setLayout] = useState("editorial");
@@ -57,7 +57,6 @@ export default function SalesBrochureGenerator() {
     setError("");
     setBrochure(null);
     setView("preview");
-    setCopyStatus("");
     setIsLoading(true);
     setSource(url.trim());
     try {
@@ -79,13 +78,16 @@ export default function SalesBrochureGenerator() {
           "The service returned an unexpected brochure. Please try again.",
         );
       setBrochure(result.data);
+      notify("Brochure draft ready.", "success");
     } catch (err) {
-      if (err.name !== "AbortError")
+      if (err.name !== "AbortError") {
+        notify("Could not create the brochure.", "error");
         setError(
           err instanceof TypeError
             ? "We couldn't connect to the brochure service. Check that it's running, then try again."
             : err.message,
         );
+      }
     } finally {
       requestRef.current = null;
       setIsLoading(false);
@@ -94,9 +96,12 @@ export default function SalesBrochureGenerator() {
   async function copyBrochure() {
     try {
       await navigator.clipboard.writeText(toMarkdown(brochure));
-      setCopyStatus("Copied to clipboard");
+      notify("Brochure copied to clipboard.", "success");
     } catch {
-      setCopyStatus("Copy is unavailable. Use Download to save your brochure.");
+      notify(
+        "Copy is unavailable. Use Download to save your brochure.",
+        "error",
+      );
     }
   }
   function downloadBrochure() {
@@ -107,6 +112,7 @@ export default function SalesBrochureGenerator() {
     link.href = objectUrl;
     link.download = "sales-brochure.md";
     link.click();
+    notify("Brochure download started.", "success");
     setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
   }
   return (
@@ -368,12 +374,11 @@ export default function SalesBrochureGenerator() {
         </TabsContent>
         <div className="editor-statusbar">
           <span className="copy-status" role="status">
-            {copyStatus ||
-              (isLoading
-                ? "Generating your document…"
-                : brochure
-                  ? "Draft ready · Review before sharing"
-                  : "Add a source to get started")}
+            {isLoading
+              ? "Generating your document…"
+              : brochure
+                ? "Draft ready · Review before sharing"
+                : "Add a source to get started"}
           </span>
           <span>
             Markdown export<span className="status-divider">/</span>1 page

@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -94,7 +95,6 @@ export default function AiTutorPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [wasStopped, setWasStopped] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState("");
   const abortControllerRef = useRef(null);
   const inputRef = useRef(null);
   const transcriptRef = useRef(null);
@@ -124,7 +124,6 @@ export default function AiTutorPage() {
     setError("");
     setWasStopped(false);
     setCopied(false);
-    setCopyError("");
     setIsStreaming(true);
 
     try {
@@ -167,6 +166,12 @@ export default function AiTutorPage() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let hasAnswer = false;
+
+      function appendContent(content) {
+        hasAnswer ||= Boolean(content.trim());
+        setAnswer((currentAnswer) => currentAnswer + content);
+      }
 
       while (true) {
         const { value, done } = await reader.read();
@@ -178,25 +183,27 @@ export default function AiTutorPage() {
           buffer = buffer.slice(
             eventBoundary + (buffer[eventBoundary] === "\r" ? 4 : 2),
           );
-          readEvent(rawEvent, (content) => {
-            setAnswer((currentAnswer) => currentAnswer + content);
-          });
+          readEvent(rawEvent, appendContent);
           eventBoundary = buffer.search(/\r?\n\r?\n/);
         }
 
         if (done) {
           if (buffer.trim()) {
-            readEvent(buffer, (content) => {
-              setAnswer((currentAnswer) => currentAnswer + content);
-            });
+            readEvent(buffer, appendContent);
           }
           break;
         }
+      }
+      if (hasAnswer) {
+        notify("Tutor answer ready.", "success");
+      } else {
+        notify("No tutor answer arrived. Try asking again.", "warning");
       }
     } catch (requestError) {
       if (requestError.name === "AbortError") {
         setWasStopped(true);
       } else {
+        notify("The tutor could not finish the answer.", "error");
         setError(
           requestError instanceof TypeError
             ? "Couldn't reach the AI tutor API. Check that the tutor service is running, then try again."
@@ -215,6 +222,7 @@ export default function AiTutorPage() {
   function stopResponse(event) {
     event.preventDefault();
     abortControllerRef.current?.abort();
+    notify("Tutor response stopped.");
     setWasStopped(true);
     setIsStreaming(false);
   }
@@ -223,9 +231,9 @@ export default function AiTutorPage() {
     try {
       await navigator.clipboard.writeText(answer);
       setCopied(true);
-      setCopyError("");
+      notify("Answer copied to clipboard.", "success");
     } catch {
-      setCopyError("Copy isn't available in this browser right now.");
+      notify("Copy isn't available in this browser right now.", "error");
     }
   }
 
@@ -293,11 +301,6 @@ export default function AiTutorPage() {
                   </p>
                 )}
               </div>
-              {copyError && (
-                <p className="copy-status" role="status">
-                  {copyError}
-                </p>
-              )}
               <footer className="response-card-footer">
                 <ResponseStatus active={isStreaming}>
                   {isStreaming
