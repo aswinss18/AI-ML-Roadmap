@@ -33,7 +33,7 @@ import {
 import "./genie.css";
 
 const API_URL = (
-  process.env.NEXT_PUBLIC_GENIE_API_BASE_URL || "http://localhost:8002"
+  process.env.NEXT_PUBLIC_GENIE_API_BASE_URL || "http://localhost:8000"
 ).replace(/\/+$/, "");
 const SUGGESTIONS = [
   {

@@ -36,13 +36,13 @@ The page supports suggested prompts, Markdown, copying replies, and stopping a r
 With Ollama running, start the assistant API from `projects/ai-assistant`:
 
 ```bash
-uv run --locked uvicorn main:app --port 8002
+uv run --locked uvicorn main:app --port 8000
 ```
 
 Run `npm run dev` from `projects/ui` and visit
 [Genie](http://localhost:3000/ai-assistant). Set
 `NEXT_PUBLIC_GENIE_API_BASE_URL` in `projects/ui/.env.local` to use another API
-address, then restart Next.js. The default is `http://localhost:8002`.
+address, then restart Next.js. The default is `http://localhost:8000`.
 The API currently permits the frontend origin `http://localhost:3000`.
 
 The existing API keeps one shared conversation in server memory. The visible
@@ -97,7 +97,6 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
 
 ## Interface and design system
 
