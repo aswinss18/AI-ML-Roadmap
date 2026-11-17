@@ -268,36 +268,11 @@ export default function GeniePage() {
 
   return (
     <div className="genie-page">
-      <div className="session-toolbar genie-toolbar">
+      <div className="session-toolbar">
         <span>
           <AudioLines size={16} />
           Conversation
-        </span>{" "}
-        <div className="genie-model-tools">
-          <ModelSelect
-            id="genie-model"
-            label="YOUR MODEL"
-            value={model}
-            onValueChange={setModel}
-            models={models}
-            loading={loadingModels}
-            disabled={streaming}
-          />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Refresh models"
-                disabled={loadingModels || streaming}
-                onClick={refreshModels}
-              >
-                <RefreshCw className={loadingModels ? "animate-spin" : ""} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Refresh models</TooltipContent>
-          </Tooltip>
-        </div>
+        </span>
       </div>
       <section
         className={`genie-workspace ${messages.length ? "has-conversation" : "is-empty"}`}
@@ -428,10 +403,34 @@ export default function GeniePage() {
                 }}
               />
               <div className="genie-composer-footer">
-                <span>
-                  <AudioLines size={14} />
-                  Your model, your conversation
-                </span>
+                <div className="genie-model-tools">
+                  <ModelSelect
+                    id="genie-model"
+                    label="AI model"
+                    value={model}
+                    onValueChange={setModel}
+                    models={models}
+                    loading={loadingModels}
+                    disabled={streaming}
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Refresh models"
+                        disabled={loadingModels || streaming}
+                        onClick={refreshModels}
+                      >
+                        <RefreshCw
+                          className={loadingModels ? "animate-spin" : ""}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Refresh models</TooltipContent>
+                  </Tooltip>
+                </div>
                 {streaming ? (
                   <Button
                     type="button"

@@ -9,9 +9,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  min-width: 0;
 }
 .genie-model-tools .model-field {
   width: 180px;
+  min-width: 0;
 }
 .genie-model-tools .model-field > label {
   position: absolute;
@@ -36,6 +38,7 @@
 .genie-model-tools > button {
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
   color: var(--muted-foreground);
 }
 .genie-model-tools > button svg {
@@ -122,18 +125,11 @@
   gap: 15px;
   padding: 0 14px 14px;
 }
-.genie-composer-footer > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 10px;
-  color: var(--muted-foreground);
-  padding-left: 6px;
-}
 .genie-send {
   font-size: 11px;
   height: 33px;
   gap: 10px;
+  flex-shrink: 0;
 }
 .genie-send svg {
   width: 14px;
@@ -289,15 +285,6 @@
   .genie-composer-footer {
     padding: 0 10px 12px;
     gap: 7px;
-  }
-  .genie-composer-footer > span {
-    font-size: 8px;
-    gap: 5px;
-    padding: 0;
-  }
-  .genie-composer-footer > span svg {
-    width: 12px;
-    height: 12px;
   }
   .genie-send {
     font-size: 10px;
