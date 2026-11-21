@@ -1,9 +1,10 @@
 import os
 import re
 import unicodedata
-from datetime import date
+from datetime import date, datetime, timedelta
 from functools import cache
 from itertools import product
+from zoneinfo import ZoneInfo
 
 import airportsdata
 import requests
@@ -11,6 +12,16 @@ import requests
 
 SYSTEM_PROMPT = """You are Lisa, an airline assistant. Keep answers concise and use the flight tools
 to verify flight details. Ask for a date or origin when needed. Never invent a flight or fare.
+If the user asks about trains or another mode of transport, explain that you look up flights.
+
+Understand shorthand, lowercase names, repeated punctuation, and ordinary typos. Pass city names
+as typed to the flight tool when their intended role is clear. Ask which location the user means
+if the tool reports ambiguity. Never require a particular capitalization or an airport code.
+
+Use the supplied local calendar to resolve today, tomorrow, and yesterday. Call get_datetime if
+you need the local clock. For a flight request, follow date resolution with the flight lookup
+in the same turn. "flights...on yesterday from trivandrum to dubai" means search_flights with
+origin="trivandrum", destination="dubai", and departure_date set to the local date for yesterday.
 
 For departures from a city or airport with no specific destination, call search_flights with
 destination=null. For example, "anything from Paris today?" means origin="Paris", destination=null,
@@ -18,7 +29,8 @@ and today's date. Use destination=null for "anywhere" or "any other place" even 
 message named a destination. Use earlier messages to resolve a missing origin or date.
 
 Aviationstack provides recent flight records. Describe search results as flight records and report
-the scheduled or actual times returned by the tool. Ticket prices, seat availability, future schedule
+the scheduled or actual times returned by the tool. Use up to four examples and label the time zone.
+Ticket prices, seat availability, future schedule
 verification, baggage policies, and booking actions are unavailable through this integration.
 For empty or incomplete results, report what the live feed returned. Never infer that no flights
 operate, or speculate about the reason for missing records. Fares are unrelated to tracking results.
@@ -26,6 +38,13 @@ operate, or speculate about the reason for missing records. Fares are unrelated 
 
 
 airline_tools = [
+    {
+        "type": "function",
+        "name": "get_datetime",
+        "description": "Get the current local time and the dates for yesterday, today, and tomorrow.",
+        "parameters": {"type": "object", "properties": {}, "required": [], "additionalProperties": False},
+        "strict": True,
+    },
     {
         "type": "function",
         "name": "search_flights",
@@ -105,7 +124,7 @@ def _validate_date(value: str) -> None:
 def _normalize_location(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value.casefold())
     plain = "".join(char for char in normalized if not unicodedata.combining(char))
-    return " ".join(plain.split())
+    return " ".join(re.findall(r"[^\W_]+", plain))
 
 
 @cache
@@ -113,32 +132,86 @@ def _airport_directory():
     return airportsdata.load("IATA"), airportsdata.load_iata_macs()
 
 
+def _one_edit_apart(value: str, candidate: str) -> bool:
+    if abs(len(value) - len(candidate)) > 1:
+        return False
+    if len(value) > len(candidate):
+        value, candidate = candidate, value
+    first_difference = next(
+        (index for index, (a, b) in enumerate(zip(value, candidate)) if a != b),
+        len(value),
+    )
+    if len(value) < len(candidate):
+        return value[first_difference:] == candidate[first_difference + 1:]
+    if first_difference == len(value):
+        return False
+    remaining = first_difference + 1
+    return (
+        value[remaining:] == candidate[remaining:]
+        or (
+            value[first_difference:remaining + 1] == candidate[first_difference:remaining + 1][::-1]
+            and value[remaining + 1:] == candidate[remaining + 1:]
+        )
+    )
+
+
+def relative_date_word(value: str) -> str | None:
+    word = value.strip().casefold()
+    names = ("yesterday", "today", "tomorrow")
+    if word in names:
+        return word
+    candidates = [name for name in names if _one_edit_apart(word, name)]
+    return candidates[0] if len(candidates) == 1 else None
+
+
+@cache
+def _location_names():
+    airports, metro_areas = _airport_directory()
+    cities = {}
+    airport_names = {}
+    for airport in airports.values():
+        cities.setdefault(_normalize_location(airport["city"]), []).append(airport)
+        airport_names.setdefault(_normalize_location(airport["name"]), []).append(airport)
+
+    city_codes = {name: _codes_in_one_place(matches) for name, matches in cities.items() if name}
+    city_codes.update({
+        _normalize_location(metro["name"]): tuple(sorted(metro["airports"]))
+        for metro in metro_areas.values()
+    })
+    city_codes.update({name: (code,) for name, code in _AIRPORT_ALIASES.items()})
+    return city_codes, {name: _codes_in_one_place(matches) for name, matches in airport_names.items() if name}
+
+
+def _codes_in_one_place(airports: list[dict]) -> tuple[str, ...]:
+    if len({(airport["country"], airport["subd"]) for airport in airports}) > 1:
+        return ()
+    return tuple(sorted(airport["iata"] for airport in airports))
+
+
 def _airport_codes(location: str) -> tuple[str, ...]:
     airports, metro_areas = _airport_directory()
-    code = location.strip().upper()
+    name = _normalize_location(location)
+    code = name.upper()
     if code in airports:
         return (code,)
     if code in metro_areas:
         return tuple(sorted(metro_areas[code]["airports"]))
 
-    name = _normalize_location(location)
     if not name:
         raise ValueError("Enter a city name or IATA airport code.")
-    if name in _AIRPORT_ALIASES:
-        return (_AIRPORT_ALIASES[name],)
-    for metro in metro_areas.values():
-        if name == _normalize_location(metro["name"]):
-            return tuple(sorted(metro["airports"]))
-
-    matches = [
-        airport for airport in airports.values()
-        if name in (_normalize_location(airport["city"]), _normalize_location(airport["name"]))
-    ]
-    if not matches:
-        raise ValueError(f"No airport found for {location!r}. Enter an IATA airport code.")
-    if len({(airport["country"], airport["subd"]) for airport in matches}) > 1:
-        raise ValueError(f"{location!r} matches multiple locations. Enter an IATA airport code.")
-    return tuple(sorted(airport["iata"] for airport in matches))
+    cities, airport_names = _location_names()
+    exact = cities.get(name, airport_names.get(name))
+    if exact is not None:
+        if exact:
+            return exact
+        raise ValueError(f"{location!r} matches multiple locations. Please provide the airport code.")
+    if len(name) >= 4:
+        matches = {codes for city, codes in cities.items() if _one_edit_apart(name, city)}
+        if len(matches) == 1 and (codes := next(iter(matches))):
+            return codes
+        if matches:
+            raise ValueError(f"{location!r} is close to multiple city names. Please confirm the city or enter an airport code.")
+    raise ValueError(f"I couldn't identify the airport or city for {location!r}. Please confirm the name or enter an airport code.")
 
 
 def _flight_summary(record: dict) -> dict:
@@ -171,6 +244,17 @@ class AirLineAgentTools:
     def __init__(self, access_key: str | None = None):
         self.tools = airline_tools
         self._access_key = access_key
+
+    def get_datetime(self, timezone: str = "Asia/Kolkata") -> dict[str, str]:
+        local_now = datetime.now(ZoneInfo(timezone))
+        today = local_now.date()
+        return {
+            "timezone": timezone,
+            "datetime": local_now.isoformat(timespec="seconds"),
+            "yesterday": (today - timedelta(days=1)).isoformat(),
+            "today": today.isoformat(),
+            "tomorrow": (today + timedelta(days=1)).isoformat(),
+        }
 
     def _fetch_flights(self, **filters: str) -> tuple[list[dict], bool]:
         access_key = self._access_key if self._access_key is not None else os.getenv("AVIATIONSTACK_ACCESS_KEY")

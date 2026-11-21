@@ -26,3 +26,28 @@ export function requestError(error) {
   if (error instanceof TypeError) return "Could not reach the airline API. Check that FastAPI is running.";
   return error.message;
 }
+
+export const CHAT_EVENT_FORMAT = "application/x-ndjson";
+
+export async function* readChatEvents(response) {
+  if (!response.body || !response.headers.get("content-type")?.includes(CHAT_EVENT_FORMAT)) {
+    throw new Error("The airline API did not return a chat event stream.");
+  }
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let pending = "";
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const lines = (pending + value).split("\n");
+      pending = lines.pop();
+      for (const line of lines) {
+        if (line.trim()) yield JSON.parse(line);
+      }
+    }
+    if (pending.trim()) yield JSON.parse(pending);
+  } finally {
+    await reader.cancel().catch(() => {});
+    reader.releaseLock();
+  }
+}

@@ -29,4 +29,7 @@ means the live feed returned no matching records in the pages checked.
 
 Ticket prices, bookable seat inventory, and future schedules are unavailable
 through this integration. `AirLineAgentTools.tools` exposes the two live lookups
-as model tool definitions.
+and a local date/time tool for relative dates. Chat accepts an optional IANA
+timezone and defaults to `Asia/Kolkata`. Clients can request tool progress and
+reply chunks by sending `Accept: application/x-ndjson` to
+`POST /chat-airline-agent`.
