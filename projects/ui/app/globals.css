@@ -958,6 +958,11 @@
   margin: 0 auto;
   padding: 35px 0 26px;
 }
+.bot-avatar {
+  flex: none;
+  object-fit: cover;
+  border-radius: 8px;
+}
 .intro-icon {
   display: flex;
   align-items: center;
@@ -1222,20 +1227,7 @@
   color: var(--muted-foreground);
 }
 .participant-avatar {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 25px;
-  height: 25px;
   border-radius: 6px;
-  background: var(--secondary);
-  color: var(--foreground);
-  font-size: 10px;
-  font-weight: 550;
-}
-.participant-avatar.jarviz {
-  background: color-mix(in srgb, var(--primary) 12%, var(--background));
-  color: var(--primary);
 }
 .participant .model-field > label {
   font-size: 10px;
@@ -1405,10 +1397,6 @@
   gap: 8px;
   margin-top: 22px;
   font-size: 11px;
-}
-.discussion-ready .model-provider-icon {
-  width: 17px;
-  height: 17px;
 }
 .discussion-plus {
   margin: 0 10px;

@@ -15,7 +15,7 @@ import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ModelIcon } from "@/components/model-identity";
+import { BotAvatar } from "@/components/bot-avatar";
 import {
   ErrorNotice,
   Markdown,
@@ -242,9 +242,7 @@ export default function Conversation() {
             {Object.entries(SPEAKERS).map(([speaker, name], index) => (
               <div className="participant" key={speaker}>
                 <div className="participant-heading">
-                  <span className={`participant-avatar ${speaker}`}>
-                    {name[0]}
-                  </span>
+                  <BotAvatar name={speaker} size={25} className="participant-avatar" />
                   <strong>{name}</strong>
                   <span>Participant {index + 1}</span>
                 </div>
@@ -374,9 +372,7 @@ export default function Conversation() {
                   className={`conversation-turn ${speaker}`}
                   aria-label={`${SPEAKERS[speaker]} turn ${turn}`}
                 >
-                  <span className={`participant-avatar ${speaker}`}>
-                    {SPEAKERS[speaker]?.[0]}
-                  </span>
+                  <BotAvatar name={speaker} size={29} className="participant-avatar" />
                   <div>
                     <header>
                       <strong>{SPEAKERS[speaker]}</strong>
@@ -396,10 +392,10 @@ export default function Conversation() {
                 Give Liz and Jarviz a topic. Follow the thinking as it unfolds.
               </p>
               <div className="discussion-ready">
-                <ModelIcon model={selection.liz} />
+                <BotAvatar name="liz" size={23} />
                 <span>Liz</span>
                 <span className="discussion-plus">+</span>
-                <ModelIcon model={selection.jarviz} />
+                <BotAvatar name="jarviz" size={23} />
                 <span>Jarviz</span>
               </div>
             </div>

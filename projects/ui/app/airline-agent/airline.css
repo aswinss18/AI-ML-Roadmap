@@ -294,25 +294,18 @@
   padding-block: 1.15rem 1.25rem;
 }
 
-.airline-welcome-icon,
+.airline-welcome-avatar,
 .airline-avatar {
-  display: grid;
-  place-items: center;
-  color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 10%, var(--background));
+  display: block;
+  object-fit: cover;
   border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
 }
 
-.airline-welcome-icon {
+.airline-welcome-avatar {
   width: 3.35rem;
   height: 3.35rem;
   border-radius: 1rem;
   margin-bottom: 0.95rem;
-}
-
-.airline-welcome-icon svg {
-  width: 1.5rem;
-  height: 1.5rem;
 }
 
 .airline-welcome h2 {
@@ -362,11 +355,6 @@
   width: 1.9rem;
   height: 1.9rem;
   border-radius: 0.55rem;
-}
-
-.airline-avatar svg {
-  width: 0.95rem;
-  height: 0.95rem;
 }
 
 .airline-reply {

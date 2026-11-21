@@ -13,7 +13,7 @@ import {
   RefreshCw,
   Square,
 } from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
+import { BotAvatar } from "@/components/bot-avatar";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
@@ -323,9 +323,7 @@ export default function GeniePage() {
         >
           {!messages.length ? (
             <div className="conversation-intro genie-welcome">
-              <span className="intro-icon">
-                <BrandMark />
-              </span>
+              <BotAvatar name="genie" size={32} className="intro-icon" />
               <span className="intro-caption">YOUR THINKING SPACE</span>
               <h2>What are you working on?</h2>
               <p>
@@ -348,9 +346,11 @@ export default function GeniePage() {
                     message.role === "user" ? "Your message" : "Genie reply"
                   }
                 >
-                  <span className="genie-message-avatar" aria-hidden="true">
-                    {message.role === "assistant" ? <BrandMark /> : "Y"}
-                  </span>
+                  {message.role === "assistant" ? (
+                    <BotAvatar name="genie" size={29} className="genie-message-avatar" />
+                  ) : (
+                    <span className="genie-message-avatar" aria-hidden="true">Y</span>
+                  )}
                   <div className="genie-message-body">
                     <header>
                       <strong>

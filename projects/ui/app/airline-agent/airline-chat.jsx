@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, CalendarDays, Check, Clock3, Copy, Loader2, Plane, PlaneTakeoff, Plus, Radar, RefreshCw, Square, TriangleAlert } from "lucide-react";
+import { ArrowUp, CalendarDays, Check, Clock3, Copy, Loader2, PlaneTakeoff, Plus, Radar, RefreshCw, Square, TriangleAlert } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -221,7 +222,8 @@ export default function AirlineChat() {
                 <div key={turn.id} className="airline-turn">
                   <p className="airline-user-message" aria-label="Your message">{turn.message}</p>
                   <article className="airline-answer" aria-label="Lisa reply">
-                    <span className="airline-avatar" aria-hidden="true"><Plane /></span>
+                    <Image className="airline-avatar" src="/brand/lisa-avatar.webp"
+                      alt="" width={30} height={30} unoptimized />
                     <div className="airline-reply">
                       <strong>Lisa</strong>
                       <ToolActivity steps={turn.steps} active={active} />
@@ -241,7 +243,8 @@ export default function AirlineChat() {
           </div>
         ) : (
           <div className="airline-welcome">
-            <span className="airline-welcome-icon" aria-hidden="true"><Plane /></span>
+            <Image className="airline-welcome-avatar" src="/brand/lisa-avatar.webp"
+              alt="" width={54} height={54} unoptimized />
             <h2>How can Lisa help?</h2>
             <p>Check departures, track a flight, or look up a recent route.</p>
           </div>

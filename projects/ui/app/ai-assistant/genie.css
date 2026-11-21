@@ -175,10 +175,6 @@
   color: var(--foreground);
   font-size: 10px;
 }
-.genie-message-avatar svg {
-  width: 24px;
-  height: 24px;
-}
 .genie-message-body {
   min-width: 0;
   flex: 1;

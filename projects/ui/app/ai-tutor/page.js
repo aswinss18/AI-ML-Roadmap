@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
-  BookOpen,
   Check,
   Copy,
   FlaskConical,
@@ -13,6 +12,7 @@ import {
   Waves,
   ArrowUpRight,
 } from "lucide-react";
+import { BotAvatar } from "@/components/bot-avatar";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
@@ -275,9 +275,7 @@ export default function AiTutorPage() {
             </div>
             <article className="response-card">
               <header className="response-card-header">
-                <span className="response-avatar">
-                  <GraduationCap size={18} />
-                </span>
+                <BotAvatar name="tutor" size={30} className="response-avatar" />
                 <div>
                   <h2>Your tutor</h2>
                   <ModelBadge>{answerModel}</ModelBadge>
@@ -327,9 +325,7 @@ export default function AiTutorPage() {
           </section>
         ) : (
           <div className="conversation-intro">
-            <span className="intro-icon">
-              <BookOpen size={23} strokeWidth={1.5} />
-            </span>
+            <BotAvatar name="tutor" size={32} className="intro-icon" />
             <span className="intro-caption">A SPACE TO UNDERSTAND</span>
             <h2>Make room for a new idea.</h2>
             <p>Work through a question. Find the explanation that clicks.</p>
