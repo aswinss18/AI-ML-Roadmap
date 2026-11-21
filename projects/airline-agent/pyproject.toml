@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "airportsdata>=20261103",
     "fastapi[standard]>=0.165.0",
     "openai>=3.57.0",
     "requests>=2.34.2",
