@@ -83,6 +83,26 @@ The chat page uses `http://localhost:8000` by default. Set
 If the UI runs on a different origin, set `MULTI_CHAT_UI_ORIGINS` on the API
 to a comma-separated list of allowed frontend origins.
 
+## Airline Agent
+
+Open **Airline Agent** from the sidebar or visit
+[Flight desk](http://localhost:3000/airline-agent). It looks up recent flights
+by route or flight number and lets you ask Lisa follow-up questions.
+
+From `projects/airline-agent`, set `AVIATIONSTACK_ACCESS_KEY` in your shell
+or put it in a local `.env` file. With Ollama running for chat, start the API:
+
+```bash
+uv run --locked uvicorn main:app --port 8004
+```
+
+Add `--env-file .env` if using a local file. The UI uses port 8004 so the
+airline API can run alongside the other workspace APIs. Set
+`NEXT_PUBLIC_AIRLINE_AGENT_API_BASE_URL` to override the address, and
+`AIRLINE_AGENT_UI_ORIGINS` on the API to allow additional frontend origins.
+Flight lookup uses Aviationstack and works without Ollama. Ask Lisa requires
+an installed Ollama model that supports tools.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -100,7 +120,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Interface and design system
 
-The four tools share shadcn/ui components, responsive navigation, and light, dark,
+The tools share shadcn/ui components, responsive navigation, and light, dark,
 and system appearance. Appearance is saved in the browser. Use Ctrl+K (or Cmd+K)
 to switch tools. The brochure supports preview, copy, and Markdown download.
 

@@ -10,12 +10,18 @@ import requests
 
 
 SYSTEM_PROMPT = """You are Lisa, an airline assistant. Keep answers concise and use the flight tools
-to verify flight details. Ask for missing dates or locations and never invent a flight or fare.
+to verify flight details. Ask for a date or origin when needed. Never invent a flight or fare.
+
+For departures from a city or airport with no specific destination, call search_flights with
+destination=null. For example, "anything from Paris today?" means origin="Paris", destination=null,
+and today's date. Use destination=null for "anywhere" or "any other place" even if an earlier
+message named a destination. Use earlier messages to resolve a missing origin or date.
 
 Aviationstack provides recent flight records. Describe search results as flight records and report
 the scheduled or actual times returned by the tool. Ticket prices, seat availability, future schedule
 verification, baggage policies, and booking actions are unavailable through this integration.
-When a search is empty or truncated, explain the limits of the live feed.
+For empty or incomplete results, report what the live feed returned. Never infer that no flights
+operate, or speculate about the reason for missing records. Fares are unrelated to tracking results.
 """
 
 
@@ -24,8 +30,8 @@ airline_tools = [
         "type": "function",
         "name": "search_flights",
         "description": (
-            "Find recent Aviationstack flight records for a specific route and departure date. "
-            "The results include status and times. Fare and seat availability are unavailable."
+            "Find recent Aviationstack flight records for a departure airport or route and date. "
+            "Pass null as the destination to find departures to any airport."
         ),
         "parameters": {
             "type": "object",
@@ -35,8 +41,8 @@ airline_tools = [
                     "description": "Departure city, IATA metro code, or IATA airport code",
                 },
                 "destination": {
-                    "type": "string",
-                    "description": "Arrival city, IATA metro code, or IATA airport code",
+                    "type": ["string", "null"],
+                    "description": "Arrival city or IATA code, or null for any destination",
                 },
                 "departure_date": {
                     "type": "string",
@@ -74,6 +80,7 @@ airline_tools = [
 _FLIGHTS_URL = "https://api.aviationstack.com/v1/flights"
 _PAGE_SIZE = 100
 _RESULT_LIMIT = 20
+_AIRPORT_ALIASES = {"thiruvananthapuram": "TRV"}
 
 
 class _AviationstackError(Exception):
@@ -117,6 +124,8 @@ def _airport_codes(location: str) -> tuple[str, ...]:
     name = _normalize_location(location)
     if not name:
         raise ValueError("Enter a city name or IATA airport code.")
+    if name in _AIRPORT_ALIASES:
+        return (_AIRPORT_ALIASES[name],)
     for metro in metro_areas.values():
         if name == _normalize_location(metro["name"]):
             return tuple(sorted(metro["airports"]))
@@ -148,6 +157,14 @@ def _flight_summary(record: dict) -> dict:
             for field in ("iata", "airport", "scheduled", "estimated", "actual", "delay", "terminal", "gate")
         }
     return result
+
+
+def _empty_search_notice(requested_date: str, returned_dates: set[str]) -> str:
+    message = f"The Aviationstack live feed returned no matching flight records for {requested_date}."
+    if returned_dates:
+        dates = ", ".join(sorted(returned_dates))
+        message += f" Records checked had departure dates of {dates}."
+    return message + " This search covers recent tracking records."
 
 
 class AirLineAgentTools:
@@ -193,31 +210,43 @@ class AirLineAgentTools:
             raise _AviationstackError("invalid_response", "Aviationstack returned an unexpected flight response.")
         return records, isinstance(total, int) and total > len(records)
 
-    def search_flights(self, origin: str, destination: str, departure_date: str) -> dict:
+    def search_flights(
+        self,
+        origin: str,
+        destination: str | None = None,
+        departure_date: str = "",
+    ) -> dict:
         try:
             _validate_date(departure_date)
             departures = _airport_codes(origin)
-            arrivals = _airport_codes(destination)
+            arrivals = _airport_codes(destination) if destination is not None else ()
         except ValueError as exc:
             return _error("invalid_input", str(exc))
 
-        routes = [(dep, arr) for dep, arr in product(departures, arrivals) if dep != arr]
+        routes = [(dep, arr) for dep, arr in product(departures, arrivals or (None,)) if dep != arr]
         if not routes:
             return _error("invalid_route", "Choose different departure and arrival airports.")
 
         flights = []
+        returned_dates = set()
         truncated = False
         try:
             for dep, arr in routes:
-                records, has_more = self._fetch_flights(dep_iata=dep, arr_iata=arr)
+                filters = {"dep_iata": dep}
+                if arr is not None:
+                    filters["arr_iata"] = arr
+                records, has_more = self._fetch_flights(**filters)
                 truncated |= has_more
-                flights.extend(
-                    _flight_summary(record)
-                    for record in records
-                    if record.get("flight_date") == departure_date
-                    and (record.get("departure") or {}).get("iata") == dep
-                    and (record.get("arrival") or {}).get("iata") == arr
-                )
+                for record in records:
+                    if (record.get("departure") or {}).get("iata") != dep:
+                        continue
+                    if arr is not None and (record.get("arrival") or {}).get("iata") != arr:
+                        continue
+                    record_date = record.get("flight_date")
+                    if isinstance(record_date, str) and record_date:
+                        returned_dates.add(record_date)
+                    if record_date == departure_date:
+                        flights.append(_flight_summary(record))
         except _AviationstackError as exc:
             return _error(exc.code, str(exc))
 
@@ -230,6 +259,7 @@ class AirLineAgentTools:
             "flights": flights[:_RESULT_LIMIT],
             "truncated": truncated or len(flights) > _RESULT_LIMIT,
             "pricing_available": False,
+            "notice": None if flights else _empty_search_notice(departure_date, returned_dates),
         }
 
     def get_flight_status(self, flight_number: str, flight_date: str) -> dict:
@@ -251,11 +281,13 @@ class AirLineAgentTools:
         except _AviationstackError as exc:
             return _error(exc.code, str(exc))
         flights = [_flight_summary(record) for record in records if record.get("flight_date") == flight_date]
+        returned_dates = {value for record in records if isinstance(value := record.get("flight_date"), str) and value}
         return {
             "source": "aviationstack_live",
             "flight_date": flight_date,
             "flights": flights[:_RESULT_LIMIT],
             "truncated": has_more or len(flights) > _RESULT_LIMIT,
+            "notice": None if flights else _empty_search_notice(flight_date, returned_dates),
         }
 
     def get_ticket_price(self, flight_id: str, travel_class: str) -> dict:

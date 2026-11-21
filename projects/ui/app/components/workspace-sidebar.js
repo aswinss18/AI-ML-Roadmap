@@ -13,6 +13,7 @@ import {
   Layers2,
   Monitor,
   Moon,
+  Plane,
   Search,
   Sun,
 } from "lucide-react";
@@ -63,26 +64,37 @@ export const WORKSPACE_LINKS = [
   {
     href: "/ai-assistant",
     label: "Genie assistant",
+    shortLabel: "Assistant",
     description: "A thinking partner for everyday work",
     icon: AudioLines,
   },
   {
     href: "/sales-brochure-generator",
     label: "Sales brochure",
+    shortLabel: "Create",
     description: "Turn a website into a compelling story",
     icon: FileText,
   },
   {
     href: "/ai-tutor",
     label: "AI tutor",
+    shortLabel: "Learn",
     description: "Make complex ideas click",
     icon: BookOpen,
   },
   {
     href: "/multi-model-chat",
     label: "Model conversations",
+    shortLabel: "Discuss",
     description: "Explore a topic from two perspectives",
     icon: Layers2,
+  },
+  {
+    href: "/airline-agent",
+    label: "Airline Agent",
+    shortLabel: "Flights",
+    description: "Look up flight status and chat with Lisa",
+    icon: Plane,
   },
 ];
 
@@ -168,7 +180,7 @@ export default function WorkspaceSidebar() {
           <nav aria-label="Main navigation">
             <SidebarGroup className="rail-group">
               <SidebarMenu>
-                {WORKSPACE_LINKS.map(({ href, label, icon: Icon }, index) => (
+                {WORKSPACE_LINKS.map(({ href, label, shortLabel, icon: Icon }) => (
                   <SidebarMenuItem key={href}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -186,13 +198,7 @@ export default function WorkspaceSidebar() {
                             onClick={() => setOpenMobile(false)}
                           >
                             <Icon />
-                            <span className="rail-short-label">
-                              {
-                                ["Assistant", "Create", "Learn", "Discuss"][
-                                  index
-                                ]
-                              }
-                            </span>
+                            <span className="rail-short-label">{shortLabel}</span>
                             <span className="rail-mobile-label">{label}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -294,7 +300,7 @@ export default function WorkspaceSidebar() {
           <DialogHeader>
             <DialogTitle>Your workspace, explained.</DialogTitle>
             <DialogDescription>
-              Four tools for creating, learning, and exploring ideas with AI.
+              Switch between the tools in your workspace.
             </DialogDescription>
           </DialogHeader>
           <div className="help-tools">

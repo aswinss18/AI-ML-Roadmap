@@ -1,0 +1,344 @@
+.airline-page {
+  width: min(100%, 73rem);
+  margin-inline: auto;
+  padding: clamp(1rem, 3.5vw, 3rem);
+}
+
+.airline-intro {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+}
+
+.airline-intro-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.8rem;
+  background: var(--display-accent);
+  color: var(--primary);
+}
+
+.airline-intro h2 {
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+}
+
+.airline-intro p,
+.airline-chat-header p {
+  color: var(--muted-foreground);
+  margin-block-start: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.airline-tabs {
+  gap: 1.1rem;
+}
+
+.airline-tabs [role="tablist"] {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.airline-tabs [role="tab"] {
+  flex: none;
+  padding-inline: 0.8rem;
+  margin-bottom: 0.55rem;
+}
+
+.airline-tabs [role="tabpanel"][data-state="inactive"] {
+  display: none;
+}
+
+.airline-lookup,
+.airline-results,
+.airline-chat {
+  display: grid;
+  gap: 1rem;
+}
+
+.airline-surface,
+.airline-record {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--card);
+  padding: clamp(0.9rem, 2.4vw, 1.4rem);
+}
+
+.airline-search-head,
+.airline-chat-header,
+.airline-results-head,
+.airline-record-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem 1rem;
+  min-width: 0;
+}
+
+.airline-page h3 {
+  font-size: 1.1rem;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+
+.airline-mode {
+  display: flex;
+  gap: 0.15rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.15rem;
+}
+
+.airline-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.45fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+  margin-block: 1.05rem 0.8rem;
+}
+
+.airline-route-fields {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.airline-field {
+  min-width: 0;
+  display: grid;
+  align-content: end;
+  gap: 0.45rem;
+}
+
+.airline-field input {
+  width: 100%;
+  min-width: 0;
+  height: 2.5rem;
+}
+
+.airline-swap,
+.airline-fields > button {
+  height: 2.5rem;
+}
+
+.airline-date-label,
+.airline-chat-model {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.airline-date-label button {
+  color: var(--primary);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.airline-date-label button:hover {
+  text-decoration: underline;
+}
+
+.airline-hint,
+.airline-results-head span,
+.airline-empty p,
+.airline-record-heading p {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.airline-results-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.airline-results-head svg,
+.airline-path-line svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.airline-flight-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+  gap: 0.75rem;
+}
+
+.airline-record {
+  min-width: 0;
+  align-content: start;
+}
+
+.airline-flight-path {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(1.5rem, 2.5rem) minmax(0, 1fr);
+  gap: 0.55rem;
+  margin-block-start: 1rem;
+}
+
+.airline-airport {
+  display: grid;
+  align-content: start;
+  gap: 0.15rem;
+}
+
+.airline-airport:last-child {
+  text-align: right;
+}
+
+.airline-airport strong {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 1.3rem;
+}
+
+.airline-airport > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.airline-airport span,
+.airline-airport time,
+.airline-airport small {
+  font-size: 0.75rem;
+}
+
+.airline-airport time {
+  font-weight: 550;
+}
+
+.airline-airport time small {
+  display: block;
+}
+
+.airline-airport small,
+.airline-path-line {
+  color: var(--muted-foreground);
+}
+
+.airline-path-line {
+  display: grid;
+  place-items: start center;
+  padding-top: 0.4rem;
+}
+
+.airline-delay {
+  margin-top: 0.8rem;
+  color: var(--destructive);
+  font-size: 0.75rem;
+}
+
+.airline-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding-block: 2rem;
+  text-align: center;
+}
+
+.airline-empty svg {
+  color: var(--muted-foreground);
+}
+
+.airline-chat-model {
+  align-items: end;
+  min-width: min(100%, 16rem);
+}
+
+.airline-chat-model .model-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.airline-chat-starters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.airline-prompt {
+  height: auto;
+  min-height: 2rem;
+  max-width: 100%;
+  justify-content: flex-start;
+  padding-block: 0.3rem;
+  white-space: normal;
+  text-align: start;
+}
+
+.airline-transcript,
+.airline-turn {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.airline-user-message {
+  justify-self: end;
+  max-width: 90%;
+  border-radius: 0.8rem 0.8rem 0.2rem 0.8rem;
+  background: var(--secondary);
+  padding: 0.6rem 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.airline-reply {
+  border-inline-start: 2px solid var(--primary);
+  padding-inline-start: 0.85rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.airline-reply > strong {
+  color: var(--primary);
+}
+
+.airline-reply small {
+  color: var(--muted-foreground);
+}
+
+.airline-composer {
+  display: flex;
+  align-items: end;
+  gap: 0.6rem;
+}
+
+@media (max-width: 760px) {
+  .airline-fields.is-route {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .airline-fields.is-route .airline-route-fields {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .airline-fields,
+  .airline-fields.is-route {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .airline-fields > button {
+    justify-self: start;
+  }
+
+  .airline-chat-model {
+    width: 100%;
+  }
+}
