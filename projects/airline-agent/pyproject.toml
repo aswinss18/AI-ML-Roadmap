@@ -7,7 +7,11 @@ authors = [
     { name = "aswin", email = "aswinartography18@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.165.0",
+    "openai>=3.57.0",
+    "requests>=2.34.2",
+]
 
 [project.scripts]
 airline-agent = "airline_agent:main"
