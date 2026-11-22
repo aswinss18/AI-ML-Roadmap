@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ErrorNotice, Markdown, ModelSelect, ResponseStatus } from "@/components/studio-ui";
+import { ErrorNotice, Markdown, ModelSelect, ResponseStatus, ThinkToggle } from "@/components/studio-ui";
 import { airlineRequest, CHAT_EVENT_FORMAT, readChatEvents, requestError } from "./api";
 
 const EXAMPLES = [
@@ -44,6 +44,7 @@ function ToolActivity({ steps, active }) {
 export default function AirlineChat() {
   const [models, setModels] = useState([]);
   const [model, setModel] = useState("");
+  const [think, setThink] = useState(false);
   const [loadingModels, setLoadingModels] = useState(true);
   const [modelError, setModelError] = useState("");
   const [draft, setDraft] = useState("");
@@ -130,7 +131,7 @@ export default function AirlineChat() {
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
       const response = await airlineRequest("/chat-airline-agent", {
-        body: { model, message, history, timezone },
+        body: { model, message, history, timezone, think },
         signal: controller.signal,
         accept: CHAT_EVENT_FORMAT,
       });
@@ -277,6 +278,7 @@ export default function AirlineChat() {
                 <RefreshCw aria-hidden="true" />
               </Button>
             </div>
+            <ThinkToggle think={think} onChange={setThink} disabled={sending} />
             {sending ? (
               <Button type="button" variant="outline" onClick={() => chatRequest.current?.abort()}>
                 <Square aria-hidden="true" /> Stop

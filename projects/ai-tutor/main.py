@@ -3,7 +3,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from openai import APIError, OpenAI
+from openai import APIError, BadRequestError, OpenAI
 from pydantic import BaseModel, Field
 from fastapi.responses import StreamingResponse
 
@@ -26,6 +26,7 @@ app.add_middleware(
 class RequestBody(BaseModel):
     question: str = Field(description="The question to ask the AI tutor")
     model: str = Field(description="The model to use for the AI tutor",default="llama3.2")    
+    think: bool = False
       
 
 
@@ -213,6 +214,7 @@ def teach_stream(request_body: RequestBody):
         try:
             response = client.chat.completions.create(
                 model=request_body.model,
+                reasoning_effort="medium" if request_body.think else "none",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": request_body.question},
@@ -226,7 +228,7 @@ def teach_stream(request_body: RequestBody):
                     yield f"data: {json.dumps({'content': content})}\n\n"
 
             yield "data: [DONE]\n\n"
-        except APIError:
+        except APIError as exc:
             logger.exception("AI tutor stream failed")
             error = {
                 "detail": (
@@ -234,6 +236,8 @@ def teach_stream(request_body: RequestBody):
                     "Ollama is running and the selected model is available."
                 )
             }
+            if request_body.think and isinstance(exc, BadRequestError) and "does not support thinking" in exc.message:
+                error["detail"] = "This model does not support thinking. Turn off Think or choose another model."
             yield f"event: error\ndata: {json.dumps(error)}\n\n"
 
     return StreamingResponse(

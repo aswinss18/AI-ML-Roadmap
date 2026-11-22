@@ -474,8 +474,13 @@
 }
 
 .airline-composer-controls {
+  flex-wrap: wrap;
   justify-content: space-between;
   padding: 0.35rem 0.65rem 0.55rem;
+}
+
+.airline-composer-controls > button:last-child {
+  margin-inline-start: auto;
 }
 
 .airline-chat-model {

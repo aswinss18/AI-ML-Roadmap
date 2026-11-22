@@ -94,10 +94,10 @@ From `projects/airline-agent`, set `AVIATIONSTACK_ACCESS_KEY` in your shell
 or put it in a local `.env` file. With Ollama running for chat, start the API:
 
 ```bash
-uv run --locked uvicorn main:app --port 8004
+uv run --locked uvicorn main:app --port 8000
 ```
 
-Add `--env-file .env` if using a local file. The UI uses port 8004 so the
+Add `--env-file .env` if using a local file. The UI uses port 8000 so the
 airline API can run alongside the other workspace APIs. Set
 `NEXT_PUBLIC_AIRLINE_AGENT_API_BASE_URL` to override the address, and
 `AIRLINE_AGENT_UI_ORIGINS` on the API to allow additional frontend origins.

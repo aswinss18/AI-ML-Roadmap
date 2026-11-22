@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import BadRequestError, OpenAI
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +14,7 @@ SYSTEM_PROMPT = "You are a helpful assistant named 'Genie' that can answer quest
 class ChatRequest(BaseModel):
     message: str = Field(..., description="The user's message to the assistant.")
     model: str = Field(..., description="The model to use for generating the response.")
+    think: bool = False
 
 
 
@@ -34,19 +35,20 @@ def get_models():
 
 @app.post("/chat-assistant")
 def chat_assistant(request: ChatRequest):
-    message_history.append({"role": "user", "content": request.message})
+    user_message = {"role": "user", "content": request.message}
 
     try:
         response = client.chat.completions.create(
             model=request.model,
-            messages=message_history,
+            messages=[*message_history, user_message],
+            reasoning_effort="medium" if request.think else "none",
             stream=True
         )
     except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Unable to start the assistant response. Please try again."
-        ) from exc
+        detail = "Unable to start the assistant response. Please try again."
+        if request.think and isinstance(exc, BadRequestError) and "does not support thinking" in exc.message:
+            detail = "This model does not support thinking. Turn off Think or choose another model."
+        raise HTTPException(status_code=502, detail=detail) from exc
 
     def event_stream():
         assistant_response = []
@@ -57,7 +59,7 @@ def chat_assistant(request: ChatRequest):
                     assistant_response.append(content)
                     yield content
 
-            message_history.append({"role": "assistant", "content": "".join(assistant_response)})
+            message_history.extend([user_message, {"role": "assistant", "content": "".join(assistant_response)}])
         except Exception:
             yield "Error: The assistant response stream was interrupted. Please try again."
 

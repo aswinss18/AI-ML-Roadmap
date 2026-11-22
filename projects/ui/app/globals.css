@@ -1429,7 +1429,7 @@
   color: var(--muted-foreground);
   padding-left: 7px;
 }
-.discussion-composer-controls > button {
+.discussion-composer-controls > button:last-child {
   margin-left: auto;
   height: 33px;
   font-size: 12px;

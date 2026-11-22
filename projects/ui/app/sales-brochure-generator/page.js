@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ErrorNotice, ModelSelect, Thinking } from "@/components/studio-ui";
+import { ErrorNotice, ModelSelect, ThinkToggle, Thinking } from "@/components/studio-ui";
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
@@ -39,6 +39,7 @@ function toMarkdown(brochure) {
 export default function SalesBrochureGenerator() {
   const [url, setUrl] = useState("");
   const [model, setModel] = useState("gpt-oss:latest");
+  const [think, setThink] = useState(false);
   const [brochure, setBrochure] = useState(null);
   const [source, setSource] = useState("");
   const [error, setError] = useState("");
@@ -68,7 +69,7 @@ export default function SalesBrochureGenerator() {
       const response = await fetch(`${API_BASE_URL}/generate-brochure`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: submittedUrl, model }),
+        body: JSON.stringify({ url: submittedUrl, model, think }),
         signal: controller.signal,
       });
       const result = await response.json();
@@ -170,6 +171,7 @@ export default function SalesBrochureGenerator() {
               onValueChange={setModel}
               disabled={isLoading}
             />
+            <ThinkToggle think={think} onChange={setThink} disabled={isLoading} />
           </div>
           <div className="inspector-section">
             <div className="section-caption">

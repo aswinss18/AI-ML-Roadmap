@@ -22,6 +22,7 @@ import {
   ModelBadge,
   ModelSelect,
   ResponseStatus,
+  ThinkToggle,
   Thinking,
 } from "@/components/studio-ui";
 
@@ -59,6 +60,7 @@ async function* readEvents(body) {
 
 export default function Conversation() {
   const [topic, setTopic] = useState("");
+  const [think, setThink] = useState(false);
   const [models, setModels] = useState([]);
   const [selection, setSelection] = useState({ liz: "", jarviz: "" });
   const [modelStatus, setModelStatus] = useState("loading");
@@ -162,6 +164,7 @@ export default function Conversation() {
           topic: cleanTopic,
           liz_model: selection.liz,
           jarviz_model: selection.jarviz,
+          think,
         }),
         signal: request.signal,
       });
@@ -426,6 +429,7 @@ export default function Conversation() {
                     ? "Finding models…"
                     : "Models take turns responding"}
                 </span>
+                <ThinkToggle think={think} onChange={setThink} disabled={isStreaming} />
                 <Button
                   className="primary-action"
                   type={isStreaming ? "button" : "submit"}

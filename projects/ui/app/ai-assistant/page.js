@@ -29,6 +29,7 @@ import {
   Markdown,
   ModelBadge,
   ModelSelect,
+  ThinkToggle,
   Thinking,
 } from "@/components/studio-ui";
 import "./genie.css";
@@ -70,6 +71,7 @@ const SUGGESTIONS = [
 export default function GeniePage() {
   const [models, setModels] = useState([]);
   const [model, setModel] = useState("");
+  const [think, setThink] = useState(false);
   const [loadingModels, setLoadingModels] = useState(true);
   const [modelError, setModelError] = useState("");
   const [draft, setDraft] = useState("");
@@ -180,7 +182,7 @@ export default function GeniePage() {
     ]);
     setDraft("");
     setError("");
-    setStatus("Genie is thinking…");
+    setStatus(think ? "Genie is thinking…" : "Genie is preparing a reply…");
     setStreaming(true);
     let content = "";
     function updateReply(extra) {
@@ -196,7 +198,7 @@ export default function GeniePage() {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
         },
-        body: JSON.stringify({ message, model }),
+        body: JSON.stringify({ message, model, think }),
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -445,6 +447,7 @@ export default function GeniePage() {
                     <TooltipContent>Refresh models</TooltipContent>
                   </Tooltip>
                 </div>
+                <ThinkToggle think={think} onChange={setThink} disabled={streaming} />
                 {streaming ? (
                   <Button
                     type="button"

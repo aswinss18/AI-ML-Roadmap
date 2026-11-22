@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getModelIdentity, ModelIcon } from "@/components/model-identity";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
@@ -25,6 +26,25 @@ export const AVAILABLE_MODELS = [
   "phi3:latest",
   "gemma3:270m",
 ];
+
+export function ThinkToggle({ think, onChange, disabled }) {
+  return (
+    <Button
+      type="button"
+      role="switch"
+      aria-checked={think}
+      variant={think ? "secondary" : "outline"}
+      disabled={disabled}
+      onClick={() => onChange(!think)}
+    >
+      Think
+      <span aria-hidden="true" className="text-xs text-muted-foreground">
+        {think ? "On" : "Off"}
+      </span>
+    </Button>
+  );
+}
+
 export function ModelSelect({
   id,
   value,

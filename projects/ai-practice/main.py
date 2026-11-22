@@ -28,6 +28,7 @@ MODEL = "openai/gpt-oss-20b"
 
 
 class SummarizeRequest(BaseModel):
+    think: bool = False
     text: str = Field(
         min_length=5,
         max_length=1000,
@@ -61,6 +62,7 @@ def summarize(request: SummarizeRequest):
     try:
         completion = client.chat.completions.create(
             model=MODEL,
+            reasoning_effort="medium" if request.think else "low",
             messages=[
                 {
                     "role": "system",

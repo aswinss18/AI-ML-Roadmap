@@ -48,6 +48,7 @@ class ChatTurn(BaseModel):
 class ChatRequest(BaseModel):
     message: MessageText
     model: LookupText
+    think: bool = False
     history: list[ChatTurn] = Field(default_factory=list, max_length=12)
     timezone: LookupText = "Asia/Kolkata"
 
@@ -217,11 +218,14 @@ def chat_events(request: ChatRequest):
         {"role": "user", "content": request.message},
     ]
 
+    reasoning_effort = "medium" if request.think else "none"
     try:
         call_count = 0
         available_tools = chat_tools
         for _ in range(3):
-            completion = client.chat.completions.create(model=request.model, messages=messages, tools=available_tools)
+            completion = client.chat.completions.create(
+                model=request.model, messages=messages, tools=available_tools, reasoning_effort=reasoning_effort,
+            )
             answer = completion.choices[0].message if completion.choices else None
             if not answer or not (answer.content or answer.tool_calls):
                 yield {"type": "error", "message": "Ollama returned an empty answer."}
@@ -268,7 +272,9 @@ def chat_events(request: ChatRequest):
                 return
 
             yield {"type": "writing"}
-            with client.chat.completions.create(model=request.model, messages=messages, stream=True) as stream:
+            with client.chat.completions.create(
+                model=request.model, messages=messages, stream=True, reasoning_effort=reasoning_effort,
+            ) as stream:
                 has_reply = False
                 for chunk in stream:
                     if chunk.choices and (content := chunk.choices[0].delta.content):
@@ -284,8 +290,11 @@ def chat_events(request: ChatRequest):
             return
 
         yield {"type": "error", "message": "The model requested too many lookups. Try one route or date at a time."}
-    except BadRequestError:
-        yield {"type": "error", "message": "Ollama rejected the chat request. Choose an installed model that supports tools."}
+    except BadRequestError as exc:
+        message = "Ollama rejected the chat request. Choose an installed model that supports tools."
+        if request.think and "does not support thinking" in exc.message:
+            message = "This model does not support thinking. Turn off Think or choose another model."
+        yield {"type": "error", "message": message}
     except APIError:
         yield {"type": "error", "message": "Ollama could not answer. Check the model and try again."}
 

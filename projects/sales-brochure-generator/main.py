@@ -51,6 +51,7 @@ Do not mention other products or platforms unless the website content explicitly
 class ScrapeRequest(BaseModel):
     url: HttpUrl
     model: str = Field(default="gpt-oss:latest", min_length=1)
+    think: bool = False
 
 
 class BrochureCopy(BaseModel):
@@ -148,6 +149,7 @@ def generate_brochure_copy(
     model_context_length: int,
     output_tokens: int,
     prompt_reserve: int,
+    think: bool = False,
 ) -> BrochureCopy:
     estimated_input_tokens = math.ceil(
         len(content) / CHARS_PER_TOKEN_ESTIMATE
@@ -179,6 +181,7 @@ def generate_brochure_copy(
                 ],
                 "format": BrochureCopy.model_json_schema(),
                 "stream": False,
+                "think": think,
                 "options": {
                     "num_ctx": request_context_length,
                     "num_predict": max_output_tokens,
@@ -313,6 +316,7 @@ def generate_brochure(request: ScrapeRequest):
             model_context_length=model_context_length,
             output_tokens=output_tokens,
             prompt_reserve=prompt_reserve,
+            think=request.think,
         )
         brochure = BrochureResponse(
             **brochure_copy.model_dump(),

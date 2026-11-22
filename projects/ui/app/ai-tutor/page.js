@@ -24,6 +24,7 @@ import {
   ModelBadge,
   ModelSelect,
   ResponseStatus,
+  ThinkToggle,
   Thinking,
 } from "@/components/studio-ui";
 
@@ -90,6 +91,7 @@ export default function AiTutorPage() {
   const [question, setQuestion] = useState("");
   const [submittedQuestion, setSubmittedQuestion] = useState("");
   const [model, setModel] = useState("llama3.2:latest");
+  const [think, setThink] = useState(false);
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -141,7 +143,7 @@ export default function AiTutorPage() {
             "Content-Type": "application/json",
             Accept: "text/event-stream",
           },
-          body: JSON.stringify({ question: cleanQuestion, model }),
+          body: JSON.stringify({ question: cleanQuestion, model, think }),
           signal: controller.signal,
         },
       );
@@ -370,6 +372,7 @@ export default function AiTutorPage() {
                 disabled={isStreaming}
               />
               <div className="composer-action-group">
+                <ThinkToggle think={think} onChange={setThink} disabled={isStreaming} />
                 {isStreaming ? (
                   <Button
                     type="button"

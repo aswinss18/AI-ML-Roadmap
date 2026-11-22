@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from openai import APIError, AsyncOpenAI
+from openai import APIError, AsyncOpenAI, BadRequestError
 from pydantic import BaseModel, StringConstraints
 
 
@@ -94,6 +94,7 @@ class RequestBody(BaseModel):
     topic: Topic
     jarviz_model: ModelName = "llama3.2"
     liz_model: ModelName = "llama3.2"
+    think: bool = False
 
 
 @app.get("/")
@@ -163,6 +164,7 @@ async def chat(request_body: RequestBody):
             try:
                 stream = await client.chat.completions.create(
                     model=model, messages=messages, stream=True, stop=SCRIPT_STOPS,
+                    reasoning_effort="medium" if request_body.think else "none",
                 )
                 async with stream:
                     async for chunk in stream:
@@ -198,10 +200,13 @@ async def chat(request_body: RequestBody):
                     if content:
                         reply += content
                         yield delta(content)
-            except APIError:
+            except APIError as exc:
                 logger.exception("Ollama failed to stream a reply for %s", speaker)
+                message = f"{name} could not reply. Check that {model} is available in Ollama."
+                if request_body.think and isinstance(exc, BadRequestError) and "does not support thinking" in exc.message:
+                    message = f"{name}'s model ({model}) does not support thinking. Turn off Think or choose another model."
                 yield json.dumps({
-                    "type": "error", "message": f"{name} could not reply. Check that {model} is available in Ollama.",
+                    "type": "error", "message": message,
                 }) + "\n"
                 return
 

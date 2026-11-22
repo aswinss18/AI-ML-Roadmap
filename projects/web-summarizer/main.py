@@ -49,6 +49,7 @@ class SummarizeRequest(BaseModel):
     url: HttpUrl = Field(
         description="URL of the website to summarize."
     )
+    think: bool = False
 
 
 class StructuredSummary(BaseModel):
@@ -278,6 +279,7 @@ def summarize(request: SummarizeRequest):
         # Step 3: Send scraped data to local LLM
         completion = client.chat.completions.create(
             model=MODEL,
+            reasoning_effort="medium" if request.think else "none",
             messages=[
                 {
                     "role": "system",
