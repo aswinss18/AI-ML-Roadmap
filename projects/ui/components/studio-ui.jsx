@@ -17,15 +17,42 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AVAILABLE_MODELS, getModelProfile, sortModels } from "@/lib/models";
 
-export const AVAILABLE_MODELS = [
-  "meditron:latest",
-  "deepseek-r1:1.5b",
-  "llama3.2:latest",
-  "gpt-oss:latest",
-  "phi3:latest",
-  "gemma3:270m",
+const brainFolds = [
+  "M7 8c0 1.5 1.1 2.5 2.5 2.5",
+  "M17 8c0 1.5-1.1 2.5-2.5 2.5",
+  "M6 14c1.4-.5 2.7 0 3.4 1",
+  "M18 14c-1.4-.5-2.7 0-3.4 1",
+  "M9.5 18c-.9-.2-1.7.2-2.1 1",
+  "M14.5 18c.9-.2 1.7.2 2.1 1",
+  "M8 5.5c.9 0 1.5.5 1.8 1.2",
 ];
+
+function ModelCapabilityIcon({ level }) {
+  const label = level
+    ? `General capability level ${level} of ${brainFolds.length}`
+    : "General capability unrated";
+
+  return (
+    <svg
+      className="model-capability-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label={label}
+    >
+      <title>{label}</title>
+      <path d="M12 5C10 1.5 5.7 3 5.4 6.4 2.7 7.1 2 9.9 3.1 12c-1.4 2.3-.4 5.3 2.1 6 .7 3.5 4.8 4.2 6.8 1.1 2 3.1 6.1 2.4 6.8-1.1 2.5-.7 3.5-3.7 2.1-6 1.1-2.1.4-4.9-2.3-5.6C18.3 3 14 1.5 12 5Z" />
+      <path d="M12 5v14.1" />
+      {brainFolds.slice(0, level ?? 0).map((fold) => <path key={fold} d={fold} />)}
+    </svg>
+  );
+}
 
 export function ThinkToggle({ think, onChange, disabled }) {
   return (
@@ -55,6 +82,7 @@ export function ModelSelect({
   label = "AI model",
 }) {
   const selected = getModelIdentity(value);
+  const selectedLevel = getModelProfile(value)?.level;
   return (
     <div className="model-field">
       <Label htmlFor={id}>{label}</Label>
@@ -87,6 +115,7 @@ export function ModelSelect({
                 {selected.tag && (
                   <span className="model-parameter-tag">{selected.tag}</span>
                 )}
+                <ModelCapabilityIcon level={selectedLevel} />
               </span>
             ) : null}
           </SelectValue>
@@ -95,14 +124,17 @@ export function ModelSelect({
           position="popper"
           align="start"
           collisionPadding={16}
-          className="model-catalog max-w-[calc(100vw-2rem)]"
+          className="model-catalog"
         >
           <SelectGroup>
             <SelectLabel className="model-catalog-label">
-              Choose a model
+              <strong>General capability ranking</strong>
+              <span>Lowest to highest · more folds mean higher estimated capability</span>
+              <span>Speed varies with hardware and Think</span>
             </SelectLabel>
-            {models.map((model) => {
+            {sortModels(models).map((model) => {
               const identity = getModelIdentity(model);
+              const profile = getModelProfile(model);
               return (
                 <SelectItem
                   className="model-option min-w-0 [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1"
@@ -116,7 +148,14 @@ export function ModelSelect({
                     </span>
                     <span className="model-option-copy min-w-0 [overflow-wrap:anywhere]">
                       <strong>{identity.name}</strong>
-                      <small>{identity.detail}</small>
+                      <small>
+                        {identity.detail}
+                        {profile?.specialty && ` · ${profile.specialty}`}
+                      </small>
+                    </span>
+                    <ModelCapabilityIcon level={profile?.level} />
+                    <span className="model-option-speed">
+                      {profile ? profile.speed : "Speed unknown"}
                     </span>
                   </span>
                 </SelectItem>

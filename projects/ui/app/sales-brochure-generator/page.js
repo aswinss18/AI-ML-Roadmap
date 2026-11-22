@@ -14,6 +14,7 @@ import {
   LayoutTemplate,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { notify } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +39,7 @@ function toMarkdown(brochure) {
 
 export default function SalesBrochureGenerator() {
   const [url, setUrl] = useState("");
-  const [model, setModel] = useState("gpt-oss:latest");
+  const [model, setModel] = useState(DEFAULT_MODEL);
   const [think, setThink] = useState(false);
   const [brochure, setBrochure] = useState(null);
   const [source, setSource] = useState("");

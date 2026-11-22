@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ErrorNotice, Markdown, ModelSelect, ResponseStatus, ThinkToggle } from "@/components/studio-ui";
+import { getDefaultModel } from "@/lib/models";
 import { airlineRequest, CHAT_EVENT_FORMAT, readChatEvents, requestError } from "./api";
 
 const EXAMPLES = [
@@ -73,9 +74,8 @@ export default function AirlineChat() {
       const data = await response.json();
       if (controller.signal.aborted) return;
       const available = [...new Set((data.models || []).filter((item) => typeof item === "string" && item.trim()))];
-      const preferred = available.find((item) => item.startsWith("llama3.2:")) || available[0] || "";
       setModels(available);
-      setModel((current) => available.includes(current) ? current : preferred);
+      setModel((current) => available.includes(current) ? current : getDefaultModel(available));
       if (!available.length) setModelError("Install a tool-capable model in Ollama, then refresh.");
     } catch (error) {
       if (!controller.signal.aborted) {

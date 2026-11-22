@@ -14,6 +14,7 @@ import {
   Square,
 } from "lucide-react";
 import { BotAvatar } from "@/components/bot-avatar";
+import { getDefaultModel } from "@/lib/models";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
@@ -114,7 +115,7 @@ export default function GeniePage() {
         : [];
       setModels(available);
       setModel((current) =>
-        available.includes(current) ? current : available[0] || "",
+        available.includes(current) ? current : getDefaultModel(available),
       );
       if (!available.length) {
         setModelError(

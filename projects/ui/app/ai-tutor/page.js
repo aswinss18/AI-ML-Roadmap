@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { BotAvatar } from "@/components/bot-avatar";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
@@ -90,7 +91,7 @@ function readEvent(rawEvent, onContent) {
 export default function AiTutorPage() {
   const [question, setQuestion] = useState("");
   const [submittedQuestion, setSubmittedQuestion] = useState("");
-  const [model, setModel] = useState("llama3.2:latest");
+  const [model, setModel] = useState(DEFAULT_MODEL);
   const [think, setThink] = useState(false);
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");

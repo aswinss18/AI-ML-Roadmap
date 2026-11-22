@@ -11,6 +11,7 @@ import {
   List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getDefaultModel } from "@/lib/models";
 import { notify } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,7 +36,6 @@ const API_URL = (
   process.env.NEXT_PUBLIC_MULTI_CHAT_API_BASE_URL || "http://localhost:8000"
 ).replace(/\/+$/, "");
 const SPEAKERS = { liz: "Liz", jarviz: "Jarviz" };
-const DEFAULT_MODEL = "llama3.2:latest";
 
 async function* readEvents(body) {
   const reader = body.pipeThrough(new TextDecoderStream()).getReader();
@@ -96,11 +96,12 @@ export default function Conversation() {
             ]
           : [];
         if (request.signal.aborted) throw request.signal.reason;
-        const defaultModel = models.includes(DEFAULT_MODEL)
-          ? DEFAULT_MODEL
-          : (models[0] ?? "");
+        const defaultModel = getDefaultModel(models);
         setModels(models);
-        setSelection({ liz: defaultModel, jarviz: defaultModel });
+        setSelection((current) => ({
+          liz: models.includes(current.liz) ? current.liz : defaultModel,
+          jarviz: models.includes(current.jarviz) ? current.jarviz : defaultModel,
+        }));
         setModelStatus(models.length ? "ready" : "empty");
         if (!models.length) {
           notify("No chat models found.", "warning");

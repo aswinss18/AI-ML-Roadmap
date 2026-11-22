@@ -50,7 +50,7 @@ Do not mention other products or platforms unless the website content explicitly
 
 class ScrapeRequest(BaseModel):
     url: HttpUrl
-    model: str = Field(default="gpt-oss:latest", min_length=1)
+    model: str = Field(default="llama3.2:latest", min_length=1)
     think: bool = False
 
 

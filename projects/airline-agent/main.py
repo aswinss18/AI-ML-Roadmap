@@ -2,9 +2,11 @@ import json
 import os
 import re
 from datetime import date
+from pathlib import Path
 from typing import Annotated, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
@@ -13,6 +15,8 @@ from pydantic import BaseModel, Field, StringConstraints
 
 from airline_agent.tools import SYSTEM_PROMPT, AirLineAgentTools, relative_date_word
 
+
+load_dotenv(Path(__file__).with_name(".env"))
 
 app = FastAPI(title="Airline Agent")
 origins = os.getenv("AIRLINE_AGENT_UI_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")

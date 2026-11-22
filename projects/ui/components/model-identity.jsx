@@ -15,7 +15,7 @@ const families = [
   { match: /^claude/i, provider: "Anthropic", icon: "claude-color.svg" },
   { match: /^qwen/i, provider: "Qwen", icon: "qwen-color.svg" },
   {
-    match: /^(mistral|mixtral|devstral|codestral)/i,
+    match: /^(ministral|mistral|mixtral|devstral|codestral)/i,
     provider: "Mistral AI",
     icon: "mistral-color.svg",
   },
@@ -24,7 +24,9 @@ const names = {
   meditron: "Meditron",
   "deepseek-r1": "DeepSeek R1",
   "llama3.2": "Llama 3.2",
-  "gpt-oss": "GPT OSS",
+  "gpt-oss": "GPT-OSS",
+  "qwen3.5": "Qwen 3.5",
+  "ministral-3": "Ministral 3",
   phi3: "Phi 3",
   gemma3: "Gemma 3",
 };
