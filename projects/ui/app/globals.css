@@ -230,21 +230,16 @@
   gap: 6px;
   border-top: 1px solid #292f3c;
 }
-.rail-footer > button,
-.appearance-button {
+.rail-footer > button {
   width: 44px;
   height: 38px;
   padding: 0;
   justify-content: center;
   color: #b7bfce;
 }
-.rail-footer > button:hover,
-.appearance-button:hover {
+.rail-footer > button:hover {
   background: #2b3140;
   color: #fff;
-}
-.appearance-button > span {
-  display: none;
 }
 .workspace-header {
   height: 56px;
@@ -285,10 +280,43 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.header-caption {
-  font-size: 11px;
+.theme-toggle {
+  width: 36px;
+  height: 36px;
   color: var(--muted-foreground);
-  white-space: nowrap;
+}
+@property --theme-wave-radius {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+:root[data-theme-ripple] {
+  --theme-wave-width: 44px;
+}
+:root[data-theme-ripple]::view-transition {
+  pointer-events: none;
+}
+:root[data-theme-ripple]::view-transition-old(root),
+:root[data-theme-ripple]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root[data-theme-ripple]::view-transition-new(root) {
+  mask-image: radial-gradient(
+    circle at var(--theme-wave-origin),
+    #000 calc(var(--theme-wave-radius) - var(--theme-wave-width)),
+    rgb(0 0 0 / 72%) calc(var(--theme-wave-radius) - 33px),
+    #000 calc(var(--theme-wave-radius) - 24px),
+    rgb(0 0 0 / 58%) calc(var(--theme-wave-radius) - 15px),
+    rgb(0 0 0 / 18%) calc(var(--theme-wave-radius) - 6px),
+    transparent var(--theme-wave-radius)
+  );
+  animation: theme-wave 720ms cubic-bezier(0.25, 0.4, 0.35, 1) both;
+}
+@keyframes theme-wave {
+  to {
+    --theme-wave-radius: var(--theme-wave-end);
+  }
 }
 .mobile-nav-trigger {
   display: none;
@@ -1507,9 +1535,12 @@
     display: flex;
   }
   .header-wordmark,
-  .header-slash,
-  .header-caption {
+  .header-slash {
     display: none;
+  }
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
   }
   .workspace-header h1 {
     font-size: 13px;
@@ -1543,15 +1574,11 @@
   [data-mobile="true"] .rail-footer {
     padding: 16px;
   }
-  [data-mobile="true"] .rail-footer > button,
-  [data-mobile="true"] .appearance-button {
+  [data-mobile="true"] .rail-footer > button {
     width: 100%;
     justify-content: flex-start;
     padding: 0 14px;
     gap: 14px;
-  }
-  [data-mobile="true"] .appearance-button > span {
-    display: block;
   }
   .document-workbench {
     display: flex;

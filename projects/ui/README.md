@@ -122,9 +122,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Interface and design system
 
-The tools share shadcn/ui components, responsive navigation, and light, dark,
-and system appearance. Appearance is saved in the browser. Use Ctrl+K (or Cmd+K)
-to switch tools. The brochure supports preview, copy, and Markdown download.
+The tools share shadcn/ui components and responsive navigation. The theme starts
+with your system preference. The header button toggles light and dark mode and
+saves your choice in the browser. Use Ctrl+K (or Cmd+K) to switch tools. The
+brochure supports preview, copy, and Markdown download.
 
 `design.md` records the visual direction. Semantic theme tokens live in
 `app/globals.css`. Shared components live in `components/studio-ui.jsx`; model

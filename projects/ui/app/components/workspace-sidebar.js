@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useTheme } from "next-themes";
 import {
   ArrowUpRight,
@@ -11,7 +12,6 @@ import {
   CircleHelp,
   FileText,
   Layers2,
-  Monitor,
   Moon,
   Plane,
   Search,
@@ -31,13 +31,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -98,37 +91,74 @@ export const WORKSPACE_LINKS = [
   },
 ];
 
-function ThemeMenu() {
-  const { theme, setTheme } = useTheme();
+function ThemeToggle() {
+  const { setTheme } = useTheme();
+  const activeTransition = useRef(null);
+
+  function toggleTheme(event) {
+    if (activeTransition.current) return;
+
+    const root = document.documentElement;
+    const nextTheme = root.classList.contains("dark") ? "light" : "dark";
+    if (
+      typeof document.startViewTransition !== "function" ||
+      typeof CSS.registerProperty !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setTheme(nextTheme);
+      return;
+    }
+
+    const { left, top, width, height } = event.currentTarget.getBoundingClientRect();
+    const x = left + width / 2;
+    const y = top + height / 2;
+    const radius = Math.hypot(
+      Math.max(x, root.clientWidth - x),
+      Math.max(y, root.clientHeight - y),
+    );
+
+    root.style.setProperty("--theme-wave-origin", `${x}px ${y}px`);
+    root.style.setProperty("--theme-wave-end", `calc(${radius}px + var(--theme-wave-width))`);
+    root.setAttribute("data-theme-ripple", "");
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setTheme(nextTheme));
+    });
+    activeTransition.current = transition;
+
+    function clearRipple() {
+      activeTransition.current = null;
+      root.removeAttribute("data-theme-ripple");
+      root.style.removeProperty("--theme-wave-origin");
+      root.style.removeProperty("--theme-wave-end");
+    }
+
+    // The browser can skip the animation while still applying the theme.
+    transition.ready.catch(() => {});
+    transition.finished.then(clearRipple, clearRipple);
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <Button
-          variant="ghost"
-          className="appearance-button"
-          aria-label="Appearance"
-          title="Appearance"
+          type="button"
+          variant="outline"
+          size="icon"
+          className="theme-toggle"
+          onClick={toggleTheme}
         >
-          <Sun className="dark:hidden" />
-          <Moon className="hidden dark:block" />
-          <span>Appearance</span>
+          <Moon className="dark:hidden" aria-hidden="true" />
+          <Sun className="hidden dark:block" aria-hidden="true" />
+          <span className="sr-only dark:hidden">Switch to dark mode</span>
+          <span className="sr-only hidden dark:block">Switch to light mode</span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-52">
-        <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-          {[
-            { value: "light", label: "Light", icon: Sun },
-            { value: "dark", label: "Dark", icon: Moon },
-            { value: "system", label: "System", icon: Monitor },
-          ].map(({ value, label, icon: Icon }) => (
-            <DropdownMenuRadioItem key={value} value={value}>
-              <Icon />
-              {label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="end" sideOffset={6}>
+        <span className="dark:hidden">Switch to dark mode</span>
+        <span className="hidden dark:block">Switch to light mode</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -226,7 +256,6 @@ export default function WorkspaceSidebar() {
             <Search />
             <span className="rail-mobile-label">Find a tool</span>
           </Button>
-          <ThemeMenu />
           <Button
             ref={helpRef}
             variant="ghost"
@@ -350,7 +379,7 @@ export function WorkspaceHeader() {
         <span className="header-slash">/</span>
         <h1>{tool?.label || "Workspace"}</h1>
       </div>
-      <span className="header-caption">Personal workspace</span>
+      <ThemeToggle />
     </header>
   );
 }
